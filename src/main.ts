@@ -43,36 +43,42 @@ document.body.appendChild(renderer.domElement);
 
 const clock = new THREE.Clock();
 
-const npcGroup = new THREE.Group();
-scene.add(npcGroup);
+const zombieLoader = new GLTFLoader();
+let zombie: THREE.Group, zombieMixer: THREE.AnimationMixer;
 
-const npcLoader = new GLTFLoader();
-const numNPCs = 5;
-
-let npcModel;
-
-npcLoader.load('public/Armored Guard Knight Rig/scene.gltf', (gltf) => {
-  npcModel = gltf.scene;
-  npcModel.scale.set(0.01, 0.01, 0.01);
-  npcModel.updateMatrixWorld(true);
-  npcModel.traverse((node) => {
+zombieLoader.load('/zombie1/scene.gltf', (gltf) => {
+  zombie = gltf.scene;
+  zombie.scale.set(0.01, 0.01, 0.01);
+  zombie.position.set(5, 0, 5);
+  zombie.traverse((node) => {
     if ((node as THREE.Mesh).isMesh) {
       node.castShadow = true;
     }
   });
-
-  for (let i = 0; i < numNPCs; i++) {
-    const npcClone = npcModel.clone();
-    npcClone.position.set(
-      (Math.random() - 0.5) * 30,
-      0,
-      (Math.random() - 0.5) * 30
-    );
-
-    npcClone.rotation.y = Math.random() * Math.PI * 2;
-    npcGroup.add(npcClone);
-  }
+  scene.add(zombie);
+  zombieMixer = new THREE.AnimationMixer(zombie);
+  const clip = gltf.animations[0];
+  const action = zombieMixer.clipAction(clip);
+  action.play();
 });
+
+function moveZombie(deltaTime: number) {
+  if (zombie) {
+    const direction = new THREE.Vector3();
+    direction.subVectors(camera.position, zombie.position).normalize();
+    zombie.position.add(direction.multiplyScalar(1 * deltaTime));
+  }
+}
+
+function checkPlayerZombieCollision() {
+  if (zombie) {
+    const distance = zombie.position.distanceTo(playerCollider.end);
+    if (distance < 1.5) {
+      console.log('Zombie collided with the player!');
+      teleportPlayer();
+    }
+  }
+}
 
 const boxGroup = new THREE.Group();
 scene.add(boxGroup);
@@ -328,6 +334,11 @@ function animate() {
   const deltaTime = clock.getDelta();
   controls(deltaTime);
   updatePlayer(deltaTime);
+  if (zombieMixer) {
+    zombieMixer.update(deltaTime);
+  }
+  moveZombie(deltaTime);
+  checkPlayerZombieCollision();
   crosshairs.position.set(mousePosition.x, mousePosition.y, -1);
   lasers.forEach((laser) => laser.userData.update());
   render();

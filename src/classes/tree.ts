@@ -27,7 +27,7 @@ class Tree {
       color: this.trunkColor,
     });
     const treeTrunk = new THREE.Mesh(treeGeometry, treeMaterial);
-    treeTrunk.position.set(5, 1.5, 5);
+    treeTrunk.position.set(10, 1.5, 10);
 
     const foliageGeometry = new THREE.SphereGeometry(1.5, 8, 8);
     const foliageMaterial = new THREE.MeshBasicMaterial({
@@ -35,7 +35,7 @@ class Tree {
     });
     const foliage = new THREE.Mesh(foliageGeometry, foliageMaterial);
 
-    foliage.position.set(5, 4, 5);
+    foliage.position.set(10, 4, 10);
 
     tree.add(treeTrunk);
     tree.add(foliage);
