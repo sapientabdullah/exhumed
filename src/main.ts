@@ -6,7 +6,7 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import GUI from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import Terrain from './classes/terrain';
-import Tree from './classes/tree';
+import { Tree } from '@dgreenheck/ez-tree';
 import { Capsule } from 'three/examples/jsm/Addons.js';
 
 new GUI();
@@ -19,8 +19,8 @@ let gun;
 
 loader.load('/gun/scene.gltf', (gltf) => {
   gun = gltf.scene;
-  gun.scale.set(0.002, 0.002, 0.002);
-  gun.position.set(0, -0.2, -1);
+  gun.scale.set(0.005, 0.005, 0.005);
+  gun.position.set(0.9, -0.9, -1.2);
   camera.add(gun);
 });
 
@@ -38,6 +38,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.6;
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
@@ -48,7 +49,7 @@ let zombie: THREE.Group, zombieMixer: THREE.AnimationMixer;
 
 zombieLoader.load('/zombie1/scene.gltf', (gltf) => {
   zombie = gltf.scene;
-  zombie.scale.set(0.01, 0.01, 0.01);
+  zombie.scale.set(0.009, 0.009, 0.009);
   zombie.position.set(5, 0, 5);
   zombie.traverse((node) => {
     if ((node as THREE.Mesh).isMesh) {
@@ -136,21 +137,6 @@ const GRAVITY = 30;
 const keyStates: { [key: string]: boolean } = {};
 document.addEventListener('keydown', (event) => (keyStates[event.code] = true));
 document.addEventListener('keyup', (event) => (keyStates[event.code] = false));
-
-document.body.addEventListener('mousemove', (event) => {
-  if (document.pointerLockElement === document.body) {
-    camera.rotation.y -= event.movementX / 500;
-    camera.rotation.x -= event.movementY / 500;
-    camera.rotation.x = Math.max(
-      -Math.PI / 2,
-      Math.min(Math.PI / 2, camera.rotation.x)
-    );
-  }
-});
-
-document.addEventListener('click', () => {
-  document.body.requestPointerLock();
-});
 
 function getForwardVector() {
   camera.getWorldDirection(playerDirection);
@@ -295,7 +281,11 @@ function createLaser() {
 const { terrain } = new Terrain({});
 scene.add(terrain);
 
-const { tree } = new Tree({});
+const tree = new Tree();
+tree.options.seed = 12345;
+tree.options.branch.levels = 3;
+
+tree.generate();
 scene.add(tree);
 
 new RGBELoader().load('/background/background4k.hdr', (texture) => {
@@ -309,26 +299,40 @@ export const crosshairs = createCrosshairs();
 camera.add(crosshairs);
 
 addEventListener('click', () => {
-  const laser = createLaser();
-  lasers.push(laser);
-  scene.add(laser);
-  let inactiveLasers = lasers.filter((l) => l.userData.active === false);
-  scene.remove(...inactiveLasers);
-  lasers = lasers.filter((l) => l.userData.active === true);
+  if (document.pointerLockElement === document.body) {
+    const laser = createLaser();
+    lasers.push(laser);
+    scene.add(laser);
+    let inactiveLasers = lasers.filter((l) => l.userData.active === false);
+    scene.remove(...inactiveLasers);
+    lasers = lasers.filter((l) => l.userData.active === true);
+  }
 });
 
-addEventListener(
-  'mousemove',
-  (event) => {
-    h = innerHeight;
-    w = innerWidth;
-    let aspect = w / h;
-    let scalingFactors = { x: aspect * 0.75, y: 0.75 };
-    mousePosition.x = ((event.clientX / w) * 2 - 1) * scalingFactors.x;
-    mousePosition.y = (-1 * (event.clientY / h) * 2 + 1) * scalingFactors.y;
-  },
-  false
-);
+document.body.addEventListener('mousemove', (event) => {
+  if (document.pointerLockElement === document.body) {
+    camera.rotation.y -= event.movementX / 500;
+    camera.rotation.x -= event.movementY / 500;
+    camera.rotation.x = Math.max(
+      -Math.PI / 2,
+      Math.min(Math.PI / 2, camera.rotation.x)
+    );
+  }
+});
+
+document.addEventListener('click', () => {
+  if (document.pointerLockElement !== document.body) {
+    document.body.requestPointerLock();
+  }
+});
+document.addEventListener('keydown', (event) => {
+  if (
+    event.code === 'Escape' &&
+    document.pointerLockElement === document.body
+  ) {
+    document.exitPointerLock();
+  }
+});
 
 function animate() {
   const deltaTime = clock.getDelta();
