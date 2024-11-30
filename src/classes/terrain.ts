@@ -42,14 +42,22 @@ class Terrain {
       this.widthSegments,
       this.heightSegments
     );
+    const loader = new THREE.TextureLoader();
+    const grassTexture = loader.load('/textures/sparse_grass_diff_4k.jpg');
+    const normalTexture = loader.load('/textures/sparse_grass_nor_gl_4k.jpg');
+
+    grassTexture.wrapS = THREE.RepeatWrapping;
+    grassTexture.wrapT = THREE.RepeatWrapping;
+    grassTexture.repeat.set(10, 10);
+
     const terrainMaterial = new THREE.MeshStandardMaterial({
-      color: this.color,
-      flatShading: true,
+      map: grassTexture,
+      normalMap: normalTexture,
     });
 
     const positionAttribute = terrainGeometry.attributes.position;
     const noise = new ImprovedNoise();
-    const scale = 15;
+    const scale = 20;
 
     for (let i = 0; i < positionAttribute.count; i++) {
       const x = positionAttribute.getX(i);
