@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-
+import { ImprovedNoise } from 'three/examples/jsm/Addons.js';
 class Terrain {
   terrain: THREE.Group;
   terrainMesh: THREE.Mesh;
@@ -44,19 +44,19 @@ class Terrain {
     );
     const terrainMaterial = new THREE.MeshStandardMaterial({
       color: this.color,
-      wireframe: true,
+      flatShading: true,
     });
 
     const positionAttribute = terrainGeometry.attributes.position;
+    const noise = new ImprovedNoise();
+    const scale = 15;
 
-    for (let i = 0; i < positionAttribute.count; i += 20) {
+    for (let i = 0; i < positionAttribute.count; i++) {
       const x = positionAttribute.getX(i);
-      const z = positionAttribute.getY(i);
-      const distanceToCenter = Math.sqrt(x * x + z * z);
+      const y = positionAttribute.getY(i);
 
-      const heightVariation =
-        Math.random() * 5 - Math.sin(distanceToCenter / 10);
-      positionAttribute.setZ(i, heightVariation);
+      const height = noise.noise(x / scale, y / scale, 0) * 5;
+      positionAttribute.setZ(i, height);
     }
 
     positionAttribute.needsUpdate = true;

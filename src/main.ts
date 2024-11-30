@@ -27,9 +27,9 @@ loader.load('/gun/scene.gltf', (gltf) => {
 let w = innerWidth;
 let h = innerHeight;
 const scene = new THREE.Scene();
+
 const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
 camera.rotation.order = 'YXZ';
-camera.position.set(0, 1, 5);
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -333,6 +333,14 @@ document.addEventListener('keydown', (event) => {
     document.exitPointerLock();
   }
 });
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(5, 10, 5);
+directionalLight.castShadow = true;
+scene.add(directionalLight);
 
 function animate() {
   const deltaTime = clock.getDelta();
