@@ -570,6 +570,14 @@ audioLoader.load('/audio/weapon/fire.mp3', function (buffer) {
   gunshotSound.setLoop(false);
 });
 
+const shellSound = new THREE.Audio(listener);
+
+audioLoader.load('/audio/weapon/bulletshells04.mp3', function (buffer) {
+  shellSound.setBuffer(buffer);
+  shellSound.setVolume(0.1);
+  shellSound.setLoop(false);
+});
+
 addEventListener('click', () => {
   if (document.pointerLockElement === document.body) {
     if (bulletCount > 0) {
@@ -580,6 +588,8 @@ addEventListener('click', () => {
       gunshotSoundInstance.setVolume(0.5);
       gunshotSoundInstance.setLoop(false);
       gunshotSoundInstance.play();
+
+      shellSound.play();
 
       const laser = createBullet();
       lasers.push(laser);
@@ -607,11 +617,23 @@ addEventListener('click', () => {
   }
 });
 
+const reloadSound = new THREE.Audio(listener);
+
+audioLoader.load('/audio/weapon/reload.mp3', function (buffer) {
+  reloadSound.setBuffer(buffer);
+  reloadSound.setVolume(0.5);
+  reloadSound.setLoop(false);
+});
+
 document.addEventListener('keydown', (event) => {
   if (event.code === 'KeyR') {
-    bulletCount = 30;
-    updateBulletDisplay();
-    console.log('Reloaded!');
+    reloadSound.play();
+
+    setTimeout(() => {
+      bulletCount = 30;
+      updateBulletDisplay();
+      console.log('Reloaded!');
+    }, 2000);
   }
 });
 
