@@ -5,7 +5,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 class Terrain {
   terrain: THREE.Group;
   terrainMesh: THREE.Mesh;
-  road: THREE.Mesh;
+  path: THREE.Mesh;
   trees: THREE.Group;
   width: number;
   height: number;
@@ -34,11 +34,11 @@ class Terrain {
 
     this.terrain = new THREE.Group();
     this.terrainMesh = this.createTerrain();
-    this.road = this.createRoad();
+    this.path = this.createPath();
     this.trees = this.createTrees();
 
     this.terrain.add(this.terrainMesh);
-    this.terrain.add(this.road);
+    this.terrain.add(this.path);
     this.terrain.add(this.trees);
   }
 
@@ -82,17 +82,38 @@ class Terrain {
     return terrain;
   }
 
-  createRoad(): THREE.Mesh {
-    const roadWidth = 10;
-    const roadLength = this.height;
-    const roadGeometry = new THREE.PlaneGeometry(roadWidth, roadLength);
-    const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+  createPath(): THREE.Mesh {
+    const pathWidth = 10;
+    const pathLength = this.height;
 
-    const road = new THREE.Mesh(roadGeometry, roadMaterial);
-    road.rotation.x = -Math.PI / 2;
-    road.position.y = 0.1;
+    const loader = new THREE.TextureLoader();
+    const pathTexture = loader.load(
+      '/ground-texture/forest_ground_04_diff_4k.jpg'
+    );
+    const pathNormalTexture = loader.load(
+      'public/textures 2/asphalt_02_nor_gl_4k.jpg'
+    );
 
-    return road;
+    pathTexture.wrapS = THREE.RepeatWrapping;
+    pathTexture.wrapT = THREE.RepeatWrapping;
+    pathTexture.repeat.set(1, pathLength / 10);
+
+    pathNormalTexture.wrapS = THREE.RepeatWrapping;
+    pathNormalTexture.wrapT = THREE.RepeatWrapping;
+    pathNormalTexture.repeat.set(1, pathLength / 10);
+
+    const pathMaterial = new THREE.MeshStandardMaterial({
+      map: pathTexture,
+      normalMap: pathNormalTexture,
+    });
+
+    const pathGeometry = new THREE.PlaneGeometry(pathWidth, pathLength);
+    const path = new THREE.Mesh(pathGeometry, pathMaterial);
+
+    path.rotation.x = -Math.PI / 2;
+    path.position.y = 0.1;
+
+    return path;
   }
 
   createTrees(): THREE.Group {
