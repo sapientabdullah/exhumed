@@ -422,10 +422,25 @@ directionalLight.position.set(5, 10, 5);
 directionalLight.castShadow = true;
 scene.add(directionalLight);
 
+let runBobbingTime = 0;
+
 function animate() {
   const deltaTime = clock.getDelta();
   controls(deltaTime);
   updatePlayer(deltaTime);
+
+  if (
+    keyStates['KeyW'] ||
+    keyStates['KeyA'] ||
+    keyStates['KeyS'] ||
+    keyStates['KeyD']
+  ) {
+    runBobbingTime += deltaTime * 10; // bobbing speed
+    camera.position.y += Math.sin(runBobbingTime) * 0.08; // bobbing intensity
+  } else {
+    runBobbingTime = 0;
+  }
+
   if (zombieMixer) {
     zombieMixer.update(deltaTime);
   }
