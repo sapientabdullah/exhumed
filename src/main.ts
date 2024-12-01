@@ -155,7 +155,13 @@ function getSideVector() {
 }
 
 function controls(deltaTime: number) {
-  const speedDelta = deltaTime * (playerOnFloor ? 25 : 8);
+  let speedMultiplier = 1;
+
+  if (keyStates['ShiftLeft']) {
+    speedMultiplier = 2;
+  }
+
+  const speedDelta = deltaTime * (playerOnFloor ? 25 : 8) * speedMultiplier;
 
   if (keyStates['KeyW'])
     playerVelocity.add(getForwardVector().multiplyScalar(speedDelta));
