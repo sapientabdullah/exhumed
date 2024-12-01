@@ -17,12 +17,117 @@ document.body.appendChild(stats.domElement);
 const loader = new GLTFLoader();
 let gun;
 
-loader.load('/gun/scene.gltf', (gltf) => {
+loader.load('/weapon/scene.gltf', (gltf) => {
   gun = gltf.scene;
   gun.scale.set(10, 10, 10);
   gun.position.set(0.9, -0.9, -1.2);
   gun.rotation.set(0, Math.PI, 0);
   camera.add(gun);
+});
+
+const containerLoader = new GLTFLoader();
+let container;
+
+containerLoader.load('/cargo/scene.gltf', (gltf) => {
+  container = gltf.scene;
+  container.scale.set(1, 1, 1);
+  container.position.set(10, 0, 10);
+  container.traverse((node) => {
+    if ((node as THREE.Mesh).isMesh) {
+      node.castShadow = true;
+    }
+  });
+  scene.add(container);
+});
+
+const vehicleLoader = new GLTFLoader();
+let vehicle;
+
+vehicleLoader.load('/vehicle/scene.gltf', (gltf) => {
+  vehicle = gltf.scene;
+  vehicle.scale.set(0.5, 0.5, 0.5);
+  vehicle.position.set(20, 0, 30);
+  vehicle.traverse((node) => {
+    if ((node as THREE.Mesh).isMesh) {
+      node.castShadow = true;
+    }
+  });
+  scene.add(vehicle);
+});
+
+const fenceLoader = new GLTFLoader();
+let fence;
+
+fenceLoader.load('public/fence/scene.gltf', (gltf) => {
+  fence = gltf.scene;
+  fence.scale.set(1, 1, 1);
+  fence.position.set(30, 0, 30);
+  fence.traverse((node) => {
+    if ((node as THREE.Mesh).isMesh) {
+      node.castShadow = true;
+    }
+  });
+  scene.add(fence);
+});
+
+const generatorLoader = new GLTFLoader();
+let generator;
+
+generatorLoader.load('/generate/scene.gltf', (gltf) => {
+  generator = gltf.scene;
+  generator.scale.set(0.01, 0.01, 0.01);
+  generator.position.set(20, 1, 20);
+  generator.traverse((node) => {
+    if ((node as THREE.Mesh).isMesh) {
+      node.castShadow = true;
+    }
+  });
+  scene.add(generator);
+});
+
+const poleLoader = new GLTFLoader();
+let pole;
+
+poleLoader.load('/pole/scene.gltf', (gltf) => {
+  pole = gltf.scene;
+  pole.scale.set(0.01, 0.01, 0.01);
+  pole.position.set(20, 1, 20);
+  pole.traverse((node) => {
+    if ((node as THREE.Mesh).isMesh) {
+      node.castShadow = true;
+    }
+  });
+  scene.add(pole);
+});
+
+const boxesLoader = new GLTFLoader();
+let boxes;
+
+boxesLoader.load('/boxes/scene.gltf', (gltf) => {
+  boxes = gltf.scene;
+  boxes.scale.set(5, 5, 5);
+  boxes.position.set(20, 1, 20);
+  boxes.traverse((node) => {
+    if ((node as THREE.Mesh).isMesh) {
+      node.castShadow = true;
+    }
+  });
+  scene.add(boxes);
+});
+
+const barrierLoader = new GLTFLoader();
+let barrier;
+
+barrierLoader.load('/barrier/scene.gltf', (gltf) => {
+  barrier = gltf.scene;
+  barrier.scale.set(1, 1, 1);
+  barrier.position.set(20, 1, 20);
+  barrier.traverse((node) => {
+    if ((node as THREE.Mesh).isMesh) {
+      node.castShadow = true;
+    }
+  });
+  scene.add(barrier);
 });
 
 let w = innerWidth;
@@ -42,6 +147,11 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
+
+const fogColor = 0xaaaaaa;
+const fogDensity = 0.05;
+scene.fog = new THREE.FogExp2(fogColor, fogDensity);
+renderer.setClearColor(fogColor);
 
 const clock = new THREE.Clock();
 
