@@ -1,14 +1,18 @@
 import * as THREE from 'three';
 import { ImprovedNoise } from 'three/examples/jsm/Addons.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
 class Terrain {
   terrain: THREE.Group;
   terrainMesh: THREE.Mesh;
-  // walls: THREE.Mesh[];
+  road: THREE.Mesh;
+  trees: THREE.Group;
   width: number;
   height: number;
   widthSegments: number;
   heightSegments: number;
   color: number;
+
   constructor({
     width = 100,
     height = 100,
@@ -30,11 +34,14 @@ class Terrain {
 
     this.terrain = new THREE.Group();
     this.terrainMesh = this.createTerrain();
-    // this.walls = this.createWalls();
+    this.road = this.createRoad();
+    this.trees = this.createTrees();
 
     this.terrain.add(this.terrainMesh);
-    // this.walls.forEach((wall) => this.terrain.add(wall));
+    this.terrain.add(this.road);
+    this.terrain.add(this.trees);
   }
+
   createTerrain(): THREE.Mesh {
     const terrainGeometry = new THREE.PlaneGeometry(
       this.width,
@@ -74,44 +81,41 @@ class Terrain {
 
     return terrain;
   }
-  createWalls(): THREE.Mesh[] {
-    const wallHeight = 10;
-    const wallThickness = 1;
-    const wallMaterial = new THREE.MeshStandardMaterial({
-      color: 0x8b4513,
+
+  createRoad(): THREE.Mesh {
+    const roadWidth = 10;
+    const roadLength = this.height;
+    const roadGeometry = new THREE.PlaneGeometry(roadWidth, roadLength);
+    const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+
+    const road = new THREE.Mesh(roadGeometry, roadMaterial);
+    road.rotation.x = -Math.PI / 2;
+    road.position.y = 0.1;
+
+    return road;
+  }
+
+  createTrees(): THREE.Group {
+    const treeGroup = new THREE.Group();
+    const loader = new GLTFLoader();
+    loader.load('/pine-large.glb', (gltf) => {
+      const treeModel = gltf.scene;
+      treeModel.scale.set(0.3, 0.3, 0.3);
+      const treeSpacing = 10;
+      const treeCount = Math.floor(this.height / treeSpacing);
+
+      for (let i = 0; i < treeCount; i++) {
+        const leftTree = treeModel.clone();
+        leftTree.position.set(-5, 0, i * treeSpacing - this.height / 2);
+
+        const rightTree = treeModel.clone();
+        rightTree.position.set(5, 0, i * treeSpacing - this.height / 2);
+
+        treeGroup.add(leftTree, rightTree);
+      }
     });
 
-    const walls = [];
-
-    const frontWall = new THREE.Mesh(
-      new THREE.BoxGeometry(this.width, wallHeight, wallThickness),
-      wallMaterial
-    );
-    frontWall.position.set(0, wallHeight / 2, -this.height / 2);
-    walls.push(frontWall);
-
-    const backWall = new THREE.Mesh(
-      new THREE.BoxGeometry(this.width, wallHeight, wallThickness),
-      wallMaterial
-    );
-    backWall.position.set(0, wallHeight / 2, this.height / 2);
-    walls.push(backWall);
-
-    const leftWall = new THREE.Mesh(
-      new THREE.BoxGeometry(wallThickness, wallHeight, this.height),
-      wallMaterial
-    );
-    leftWall.position.set(-this.width / 2, wallHeight / 2, 0);
-    walls.push(leftWall);
-
-    const rightWall = new THREE.Mesh(
-      new THREE.BoxGeometry(wallThickness, wallHeight, this.height),
-      wallMaterial
-    );
-    rightWall.position.set(this.width / 2, wallHeight / 2, 0);
-    walls.push(rightWall);
-
-    return walls;
+    return treeGroup;
   }
 }
 

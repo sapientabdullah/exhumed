@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@dgreenheck/ez-tree':
-        specifier: ^1.0.0
-        version: 1.0.0(three@0.170.0)
       three:
         specifier: ^0.170.0
         version: 0.170.0
@@ -49,11 +46,6 @@ packages:
   '@babel/types@7.26.0':
     resolution: {integrity: sha512-Z/yiTPj+lDVnF7lWeKCIJzaIkI0vYO87dMpZ4bg4TDrFe4XXLFWL1TbXU27gBP3QccxV9mZICCrnjnYlJjXHOA==}
     engines: {node: '>=6.9.0'}
-
-  '@dgreenheck/ez-tree@1.0.0':
-    resolution: {integrity: sha512-5ZOsqiXUdEbPgAxPp8sjWYqtVSGaK9nuN8/H1A/ert3yA5HzPWOFtXT1+VqdJB42bCX0zYbi+N1F4ibg+GXGtg==}
-    peerDependencies:
-      three: '>=0.167'
 
   '@esbuild/aix-ppc64@0.24.0':
     resolution: {integrity: sha512-WtKdFM7ls47zkKHFVzMz8opM7LkcsIp9amDUBIAWirg70RM71WRSjdILPsY5Uv1D42ZpUfaPILDlfactHgsRkw==}
@@ -435,9 +427,6 @@ packages:
   three@0.170.0:
     resolution: {integrity: sha512-FQK+LEpYc0fBD+J8g6oSEyyNzjp+Q7Ks1C568WWaoMRLW+TkNNWmenWeGgJjV105Gd+p/2ql1ZcjYvNiPZBhuQ==}
 
-  tweakpane@4.0.5:
-    resolution: {integrity: sha512-rxEXdSI+ArlG1RyO6FghC4ZUX8JkEfz8F3v1JuteXSV0pEtHJzyo07fcDG+NsJfN5L39kSbCYbB9cBGHyuI/tQ==}
-
   typescript@5.6.3:
     resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
     engines: {node: '>=14.17'}
@@ -506,11 +495,6 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
-
-  '@dgreenheck/ez-tree@1.0.0(three@0.170.0)':
-    dependencies:
-      three: 0.170.0
-      tweakpane: 4.0.5
 
   '@esbuild/aix-ppc64@0.24.0':
     optional: true
@@ -817,8 +801,6 @@ snapshots:
   strip-json-comments@3.1.1: {}
 
   three@0.170.0: {}
-
-  tweakpane@4.0.5: {}
 
   typescript@5.6.3: {}
 

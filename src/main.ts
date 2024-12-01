@@ -6,7 +6,6 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import GUI from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import Terrain from './classes/terrain';
-import { Tree } from '@dgreenheck/ez-tree';
 import { Capsule } from 'three/examples/jsm/Addons.js';
 
 new GUI();
@@ -148,7 +147,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
-const fogColor = 0xaaaaaa;
+const fogColor = 0xd9c57d;
 const fogDensity = 0.05;
 scene.fog = new THREE.FogExp2(fogColor, fogDensity);
 renderer.setClearColor(fogColor);
@@ -435,13 +434,6 @@ setTimeout(() => {
 
 const { terrain } = new Terrain({});
 scene.add(terrain);
-
-const tree = new Tree();
-tree.options.seed = 12345;
-tree.options.branch.levels = 3;
-
-tree.generate();
-scene.add(tree);
 
 new RGBELoader().load('/background/background4k.hdr', (texture) => {
   texture.mapping = THREE.EquirectangularReflectionMapping;
