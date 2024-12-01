@@ -19,8 +19,9 @@ let gun;
 
 loader.load('/gun/scene.gltf', (gltf) => {
   gun = gltf.scene;
-  gun.scale.set(0.005, 0.005, 0.005);
+  gun.scale.set(10, 10, 10);
   gun.position.set(0.9, -0.9, -1.2);
+  gun.rotation.set(0, Math.PI, 0);
   camera.add(gun);
 });
 
@@ -278,6 +279,42 @@ function createLaser() {
   return laserBolt;
 }
 
+const textureLoader = new THREE.TextureLoader();
+const muzzleFlashTexture = textureLoader.load('/Fireball Illustration PNG.png');
+
+function createMuzzleFlash() {
+  // Create a plane geometry for the muzzle flash
+  const flashGeometry = new THREE.PlaneGeometry(10, 10); // Adjust size as needed
+
+  // Create a material with the loaded texture
+  const flashMaterial = new THREE.MeshBasicMaterial({
+    map: muzzleFlashTexture,
+    transparent: true,
+    opacity: 1.0,
+    depthWrite: false, // Ensures the flash doesn't block other objects
+    side: THREE.DoubleSide, // Visible from both sides
+    blending: THREE.AdditiveBlending, // Makes it glow
+  });
+  // Create the mesh
+  const flashMesh = new THREE.Mesh(flashGeometry, flashMaterial);
+
+  // Position it at the gun's muzzle (adjust based on your gun model)
+  flashMesh.position.set(-10, -0.9, -10); // Example position; tweak to fit
+  flashMesh.lookAt(camera.position); // Make it face the camera
+  flashMesh.scale.set(1 + Math.random() * 0.5, 1 + Math.random() * 0.5, 1);
+  flashMesh.rotation.z = Math.random() * Math.PI * 2; // Random rotation
+
+  return flashMesh;
+}
+
+const flashLight = new THREE.PointLight(0xffaa33, 1, 10); // Bright orange light
+flashLight.position.set(0.9, -0.9, -1.0); // Match gun muzzle position
+scene.add(flashLight);
+
+setTimeout(() => {
+  scene.remove(flashLight);
+}, 100);
+
 const { terrain } = new Terrain({});
 scene.add(terrain);
 
@@ -298,14 +335,57 @@ let mousePosition = new THREE.Vector2();
 export const crosshairs = createCrosshairs();
 camera.add(crosshairs);
 
+let bulletCount = 10;
+
+function updateBulletDisplay() {
+  let bulletDisplay = document.getElementById('bullet-display');
+  if (!bulletDisplay) {
+    bulletDisplay = document.createElement('div');
+    bulletDisplay.id = 'bullet-display';
+    bulletDisplay.style.position = 'absolute';
+    bulletDisplay.style.bottom = '10px';
+    bulletDisplay.style.right = '10px';
+    bulletDisplay.style.color = 'white';
+    bulletDisplay.style.fontSize = '24px';
+    bulletDisplay.style.fontFamily = 'Arial, sans-serif';
+    document.body.appendChild(bulletDisplay);
+  }
+  bulletDisplay.textContent = `${bulletCount} / 10`;
+}
+
+updateBulletDisplay();
+
 addEventListener('click', () => {
   if (document.pointerLockElement === document.body) {
-    const laser = createLaser();
-    lasers.push(laser);
-    scene.add(laser);
-    let inactiveLasers = lasers.filter((l) => l.userData.active === false);
-    scene.remove(...inactiveLasers);
-    lasers = lasers.filter((l) => l.userData.active === true);
+    if (bulletCount > 0) {
+      const laser = createLaser();
+      lasers.push(laser);
+      scene.add(laser);
+
+      const flashMesh = createMuzzleFlash();
+      scene.add(flashMesh);
+
+      setTimeout(() => {
+        scene.remove(flashMesh);
+      }, 100);
+
+      bulletCount--;
+      updateBulletDisplay();
+
+      let inactiveLasers = lasers.filter((l) => l.userData.active === false);
+      scene.remove(...inactiveLasers);
+      lasers = lasers.filter((l) => l.userData.active === true);
+    } else {
+      console.log('Out of bullets!');
+    }
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.code === 'KeyR') {
+    bulletCount = 10;
+    updateBulletDisplay();
+    console.log('Reloaded!');
   }
 });
 

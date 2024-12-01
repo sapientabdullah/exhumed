@@ -3,7 +3,7 @@ import { ImprovedNoise } from 'three/examples/jsm/Addons.js';
 class Terrain {
   terrain: THREE.Group;
   terrainMesh: THREE.Mesh;
-  walls: THREE.Mesh[];
+  // walls: THREE.Mesh[];
   width: number;
   height: number;
   widthSegments: number;
@@ -30,10 +30,10 @@ class Terrain {
 
     this.terrain = new THREE.Group();
     this.terrainMesh = this.createTerrain();
-    this.walls = this.createWalls();
+    // this.walls = this.createWalls();
 
     this.terrain.add(this.terrainMesh);
-    this.walls.forEach((wall) => this.terrain.add(wall));
+    // this.walls.forEach((wall) => this.terrain.add(wall));
   }
   createTerrain(): THREE.Mesh {
     const terrainGeometry = new THREE.PlaneGeometry(
@@ -57,7 +57,7 @@ class Terrain {
 
     const positionAttribute = terrainGeometry.attributes.position;
     const noise = new ImprovedNoise();
-    const scale = 20;
+    const scale = 50;
 
     for (let i = 0; i < positionAttribute.count; i++) {
       const x = positionAttribute.getX(i);
