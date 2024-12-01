@@ -361,6 +361,12 @@ function updateBulletDisplay() {
 
 updateBulletDisplay();
 
+let recoilAmount = 0.1;
+let recoilSpeed = 0.1;
+let maxRecoil = 0.3;
+let currentRecoil = 0;
+let recoilDirection = 0;
+
 addEventListener('click', () => {
   if (document.pointerLockElement === document.body) {
     if (bulletCount > 0) {
@@ -377,6 +383,9 @@ addEventListener('click', () => {
 
       bulletCount--;
       updateBulletDisplay();
+
+      currentRecoil = maxRecoil;
+      recoilDirection = Math.random() > 0.5 ? 1 : -1;
 
       let inactiveLasers = lasers.filter((l) => l.userData.active === false);
       scene.remove(...inactiveLasers);
@@ -460,6 +469,15 @@ function animate() {
   checkPlayerZombieCollision();
   crosshairs.position.set(mousePosition.x, mousePosition.y, -1);
   lasers.forEach((laser) => laser.userData.update());
+
+  if (currentRecoil > 0) {
+    camera.position.z -= recoilAmount * recoilDirection;
+    gun!.position.z -= recoilAmount * recoilDirection;
+
+    currentRecoil -= recoilSpeed;
+    if (currentRecoil < 0) currentRecoil = 0;
+  }
+
   render();
   stats.update();
   requestAnimationFrame(animate);
