@@ -429,6 +429,7 @@ directionalLight.castShadow = true;
 scene.add(directionalLight);
 
 let runBobbingTime = 0;
+let gunBobbingTime = 0;
 
 function animate() {
   const deltaTime = clock.getDelta();
@@ -443,8 +444,13 @@ function animate() {
   ) {
     runBobbingTime += deltaTime * 10; // bobbing speed
     camera.position.y += Math.sin(runBobbingTime) * 0.08; // bobbing intensity
+    gunBobbingTime += deltaTime * 10; // bobbing speed
+    gun!.position.y = -0.9 + Math.sin(gunBobbingTime) * 0.1; // bobbing intensity in vertical direction
+    gun!.position.x = 0.9 + Math.sin(gunBobbingTime * 0.5) * 0.05; // horizontal sway
+    gun!.position.z = -1.2 + Math.cos(gunBobbingTime * 0.5) * 0.05;
   } else {
     runBobbingTime = 0;
+    gunBobbingTime = 0;
   }
 
   if (zombieMixer) {
