@@ -91,7 +91,7 @@ class Terrain {
       '/ground-texture/forest_ground_04_diff_4k.jpg'
     );
     const pathNormalTexture = loader.load(
-      'public/textures 2/asphalt_02_nor_gl_4k.jpg'
+      '/ground-texture/forest_ground_04_nor_gl_4k.jpg'
     );
 
     pathTexture.wrapS = THREE.RepeatWrapping;

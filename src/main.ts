@@ -10,7 +10,37 @@ import { Capsule } from 'three/examples/jsm/Addons.js';
 const stats = new Stats() as any;
 document.body.appendChild(stats.domElement);
 
-const loader = new GLTFLoader();
+const loadingManager = new THREE.LoadingManager();
+
+loadingManager.onStart = (url, itemsLoaded, itemsTotal) => {
+  console.log(
+    `Started loading file: ${url}.\nLoaded ${itemsLoaded} of ${itemsTotal} files.`
+  );
+};
+
+loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+  const progress = (itemsLoaded / itemsTotal) * 100;
+  console.log(`Loading file: ${url}.\nProgress: ${progress.toFixed(2)}%`);
+  updateProgressBar(progress);
+};
+
+loadingManager.onLoad = () => {
+  console.log('All resources loaded!');
+  document.getElementById('loading-screen')?.remove();
+};
+
+loadingManager.onError = (url) => {
+  console.error(`There was an error loading ${url}`);
+};
+
+function updateProgressBar(progress: number) {
+  const progressBar = document.getElementById('progress-bar');
+  if (progressBar) {
+    progressBar.style.width = `${progress}%`;
+  }
+}
+
+const loader = new GLTFLoader(loadingManager);
 let gun: THREE.Group;
 
 loader.load('/weapon/scene.gltf', (gltf) => {
@@ -21,7 +51,7 @@ loader.load('/weapon/scene.gltf', (gltf) => {
   camera.add(gun);
 });
 
-const containerLoader = new GLTFLoader();
+const containerLoader = new GLTFLoader(loadingManager);
 let container;
 
 containerLoader.load('/cargo/scene.gltf', (gltf) => {
@@ -36,7 +66,7 @@ containerLoader.load('/cargo/scene.gltf', (gltf) => {
   scene.add(container);
 });
 
-const vehicleLoader = new GLTFLoader();
+const vehicleLoader = new GLTFLoader(loadingManager);
 let vehicle;
 
 vehicleLoader.load('/vehicle/scene.gltf', (gltf) => {
@@ -51,10 +81,10 @@ vehicleLoader.load('/vehicle/scene.gltf', (gltf) => {
   scene.add(vehicle);
 });
 
-const fenceLoader = new GLTFLoader();
+const fenceLoader = new GLTFLoader(loadingManager);
 let fence;
 
-fenceLoader.load('public/fence/scene.gltf', (gltf) => {
+fenceLoader.load('/fence/scene.gltf', (gltf) => {
   fence = gltf.scene;
   fence.scale.set(1, 1, 1);
   fence.position.set(30, 0, 30);
@@ -66,7 +96,7 @@ fenceLoader.load('public/fence/scene.gltf', (gltf) => {
   scene.add(fence);
 });
 
-const generatorLoader = new GLTFLoader();
+const generatorLoader = new GLTFLoader(loadingManager);
 let generator;
 
 generatorLoader.load('/generate/scene.gltf', (gltf) => {
@@ -81,7 +111,7 @@ generatorLoader.load('/generate/scene.gltf', (gltf) => {
   scene.add(generator);
 });
 
-const poleLoader = new GLTFLoader();
+const poleLoader = new GLTFLoader(loadingManager);
 let pole;
 
 poleLoader.load('/pole/scene.gltf', (gltf) => {
@@ -96,7 +126,7 @@ poleLoader.load('/pole/scene.gltf', (gltf) => {
   scene.add(pole);
 });
 
-const boxesLoader = new GLTFLoader();
+const boxesLoader = new GLTFLoader(loadingManager);
 let boxes;
 
 boxesLoader.load('/boxes/scene.gltf', (gltf) => {
@@ -111,7 +141,7 @@ boxesLoader.load('/boxes/scene.gltf', (gltf) => {
   scene.add(boxes);
 });
 
-const barrierLoader = new GLTFLoader();
+const barrierLoader = new GLTFLoader(loadingManager);
 let barrier;
 
 barrierLoader.load('/barrier/scene.gltf', (gltf) => {
@@ -151,7 +181,7 @@ renderer.setClearColor(fogColor);
 
 const clock = new THREE.Clock();
 
-const zombieLoader = new GLTFLoader();
+const zombieLoader = new GLTFLoader(loadingManager);
 let zombie: THREE.Group, zombieMixer: THREE.AnimationMixer;
 
 zombieLoader.load('/zombie1/scene.gltf', (gltf) => {
@@ -170,13 +200,13 @@ zombieLoader.load('/zombie1/scene.gltf', (gltf) => {
   action.play();
 });
 
-function moveZombie(deltaTime: number) {
-  if (zombie) {
-    const direction = new THREE.Vector3();
-    direction.subVectors(camera.position, zombie.position).normalize();
-    zombie.position.add(direction.multiplyScalar(1 * deltaTime));
-  }
-}
+// function moveZombie(deltaTime: number) {
+//   if (zombie) {
+//     const direction = new THREE.Vector3();
+//     direction.subVectors(camera.position, zombie.position).normalize();
+//     zombie.position.add(direction.multiplyScalar(1 * deltaTime));
+//   }
+// }
 
 let isPlayerNearZombie = false;
 
@@ -374,19 +404,21 @@ const impactPos = new THREE.Vector3();
 const impactColor = new THREE.Color();
 let impactBox: THREE.LineSegments | null = null;
 let lasers: THREE.Mesh[] = [];
-const laserGeo = new THREE.IcosahedronGeometry(0.05, 2);
 
-function createLaser() {
-  const laserMat = new THREE.MeshBasicMaterial({
-    color: 0xffcc00,
+function createBullet() {
+  const bulletGeo = new THREE.IcosahedronGeometry(0.05, 2);
+  const bulletMat = new THREE.MeshBasicMaterial({
+    color: 0xff4500,
     transparent: true,
     fog: false,
+    blending: THREE.AdditiveBlending,
   });
-  const laserBolt = new THREE.Mesh(laserGeo, laserMat);
-  laserBolt.position.copy(camera.position);
+  const bullet = new THREE.Mesh(bulletGeo, bulletMat);
+  bullet.position.copy(camera.position);
+  bullet.rotation.copy(camera.rotation);
 
   let active = true;
-  let speed = 0.5;
+  let speed = 2;
 
   let goalPos = camera.position
     .clone()
@@ -394,7 +426,7 @@ function createLaser() {
 
   const laserDirection = new THREE.Vector3(0, 0, 0);
   laserDirection
-    .subVectors(laserBolt.position, goalPos)
+    .subVectors(bullet.position, goalPos)
     .normalize()
     .multiplyScalar(speed);
 
@@ -421,11 +453,11 @@ function createLaser() {
   function update() {
     if (active === true) {
       if (isExploding === false) {
-        laserBolt.position.sub(laserDirection);
+        bullet.position.sub(laserDirection);
 
-        if (laserBolt.position.distanceTo(impactPos) < 0.5) {
-          laserBolt.position.copy(impactPos);
-          laserBolt.material.color.set(impactColor);
+        if (bullet.position.distanceTo(impactPos) < 0.5) {
+          bullet.position.copy(impactPos);
+          bullet.material.color.set(impactColor);
           isExploding = true;
           impactBox?.scale.setScalar(0.0);
         }
@@ -438,17 +470,17 @@ function createLaser() {
           scale = 0.01;
           active = false;
         }
-        laserBolt.scale.setScalar(scale);
-        laserBolt.material.opacity = opacity;
-        laserBolt.userData.active = active;
+        bullet.scale.setScalar(scale);
+        bullet.material.opacity = opacity;
+        bullet.userData.active = active;
       }
     }
   }
-  laserBolt.userData = { update, active };
-  return laserBolt;
+  bullet.userData = { update, active };
+  return bullet;
 }
 
-const textureLoader = new THREE.TextureLoader();
+const textureLoader = new THREE.TextureLoader(loadingManager);
 const muzzleFlashTexture = textureLoader.load('/Fireball Illustration PNG.png');
 
 function createMuzzleFlash() {
@@ -487,11 +519,14 @@ setTimeout(() => {
 const { terrain } = new Terrain({});
 scene.add(terrain);
 
-new RGBELoader().load('/background/background4k.hdr', (texture) => {
-  texture.mapping = THREE.EquirectangularReflectionMapping;
-  scene.background = texture;
-  scene.environment = texture;
-});
+new RGBELoader(loadingManager).load(
+  '/background/background4k.hdr',
+  (texture) => {
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    scene.background = texture;
+    scene.environment = texture;
+  }
+);
 
 let mousePosition = new THREE.Vector2();
 export const crosshairs = createCrosshairs();
@@ -528,7 +563,7 @@ camera.add(listener);
 
 const gunshotSound = new THREE.Audio(listener);
 
-const audioLoader = new THREE.AudioLoader();
+const audioLoader = new THREE.AudioLoader(loadingManager);
 audioLoader.load('/audio/weapon/fire.mp3', function (buffer) {
   gunshotSound.setBuffer(buffer);
   gunshotSound.setVolume(0.5);
@@ -546,7 +581,7 @@ addEventListener('click', () => {
       gunshotSoundInstance.setLoop(false);
       gunshotSoundInstance.play();
 
-      const laser = createLaser();
+      const laser = createBullet();
       lasers.push(laser);
       scene.add(laser);
 
@@ -649,7 +684,7 @@ document.addEventListener('mousedown', () => {
         }
         gunshotSound.play();
 
-        const laser = createLaser();
+        const laser = createBullet();
         lasers.push(laser);
         scene.add(laser);
 
