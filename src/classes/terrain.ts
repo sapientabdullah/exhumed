@@ -57,7 +57,7 @@ class Terrain {
 
     const positionAttribute = terrainGeometry.attributes.position;
     const noise = new ImprovedNoise();
-    const scale = 50;
+    const scale = 100;
 
     for (let i = 0; i < positionAttribute.count; i++) {
       const x = positionAttribute.getX(i);

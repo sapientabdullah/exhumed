@@ -199,8 +199,10 @@ function playerCollisions() {
 }
 
 function teleportPlayer() {
-  playerCollider.start.set(0, 0.35, 0);
-  playerCollider.end.set(0, 1, 0);
+  const randomX = Math.random() * 50 - 25;
+  const randomZ = Math.random() * 50 - 25;
+  playerCollider.start.set(randomX, 0.35, randomZ);
+  playerCollider.end.set(randomX, 1, randomZ);
   camera.position.copy(playerCollider.end);
   playerVelocity.set(0, 0, 0);
 }
