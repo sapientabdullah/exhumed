@@ -4,17 +4,14 @@ import { createCrosshairs } from './utils/createCrosshairs';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import GUI from 'three/examples/jsm/libs/lil-gui.module.min.js';
 import Terrain from './classes/terrain';
 import { Capsule } from 'three/examples/jsm/Addons.js';
-
-new GUI();
 
 const stats = new Stats() as any;
 document.body.appendChild(stats.domElement);
 
 const loader = new GLTFLoader();
-let gun;
+let gun: THREE.Group;
 
 loader.load('/weapon/scene.gltf', (gltf) => {
   gun = gltf.scene;
@@ -181,15 +178,70 @@ function moveZombie(deltaTime: number) {
   }
 }
 
+let isPlayerNearZombie = false;
+
 function checkPlayerZombieCollision() {
   if (zombie) {
     const distance = zombie.position.distanceTo(playerCollider.end);
     if (distance < 1.5) {
-      console.log('Zombie collided with the player!');
-      teleportPlayer();
+      if (!isPlayerNearZombie) {
+        isPlayerNearZombie = true;
+        startHealthDecay();
+      }
+    } else {
+      if (isPlayerNearZombie) {
+        isPlayerNearZombie = false;
+        stopHealthDecay();
+      }
     }
   }
 }
+
+let playerHealth = 100;
+const maxHealth = 100;
+
+let healthDecreaseInterval: ReturnType<typeof setInterval> | undefined =
+  undefined;
+
+function startHealthDecay() {
+  if (!healthDecreaseInterval) {
+    healthDecreaseInterval = setInterval(() => {
+      if (playerHealth > 0) {
+        playerHealth -= 5;
+        updateHealthDisplay();
+      } else {
+        clearInterval(healthDecreaseInterval);
+        healthDecreaseInterval = undefined;
+        console.log('Player is dead');
+      }
+    }, 500);
+  }
+}
+
+function stopHealthDecay() {
+  if (healthDecreaseInterval) {
+    clearInterval(healthDecreaseInterval);
+    healthDecreaseInterval = undefined;
+  }
+}
+
+function updateHealthDisplay() {
+  let healthDisplay = document.getElementById('health-display');
+  if (!healthDisplay) {
+    healthDisplay = document.createElement('div');
+    healthDisplay.id = 'health-display';
+    healthDisplay.style.position = 'absolute';
+    healthDisplay.style.bottom = '10px';
+    healthDisplay.style.left = '10px';
+    healthDisplay.style.color = 'red';
+    healthDisplay.style.fontSize = '24px';
+    healthDisplay.style.fontFamily = 'Jura, sans-serif';
+    document.body.appendChild(healthDisplay);
+  }
+  healthDisplay.textContent = `${playerHealth} / ${maxHealth}`;
+}
+
+updateHealthDisplay();
 
 const boxGroup = new THREE.Group();
 scene.add(boxGroup);
@@ -445,7 +497,7 @@ let mousePosition = new THREE.Vector2();
 export const crosshairs = createCrosshairs();
 camera.add(crosshairs);
 
-let bulletCount = 10;
+let bulletCount = 30;
 
 function updateBulletDisplay() {
   let bulletDisplay = document.getElementById('bullet-display');
@@ -457,10 +509,10 @@ function updateBulletDisplay() {
     bulletDisplay.style.right = '10px';
     bulletDisplay.style.color = 'white';
     bulletDisplay.style.fontSize = '24px';
-    bulletDisplay.style.fontFamily = 'Arial, sans-serif';
+    bulletDisplay.style.fontFamily = 'Jura, sans-serif';
     document.body.appendChild(bulletDisplay);
   }
-  bulletDisplay.textContent = `${bulletCount} / 10`;
+  bulletDisplay.textContent = `${bulletCount} / Inf`;
 }
 
 updateBulletDisplay();
@@ -471,9 +523,29 @@ let maxRecoil = 0.3;
 let currentRecoil = 0;
 let recoilDirection = 0;
 
+const listener = new THREE.AudioListener();
+camera.add(listener);
+
+const gunshotSound = new THREE.Audio(listener);
+
+const audioLoader = new THREE.AudioLoader();
+audioLoader.load('/audio/weapon/fire.mp3', function (buffer) {
+  gunshotSound.setBuffer(buffer);
+  gunshotSound.setVolume(0.5);
+  gunshotSound.setLoop(false);
+});
+
 addEventListener('click', () => {
   if (document.pointerLockElement === document.body) {
     if (bulletCount > 0) {
+      const gunshotSoundInstance = new THREE.Audio(listener);
+      if (gunshotSound.buffer) {
+        gunshotSoundInstance.setBuffer(gunshotSound.buffer);
+      }
+      gunshotSoundInstance.setVolume(0.5);
+      gunshotSoundInstance.setLoop(false);
+      gunshotSoundInstance.play();
+
       const laser = createLaser();
       lasers.push(laser);
       scene.add(laser);
@@ -502,7 +574,7 @@ addEventListener('click', () => {
 
 document.addEventListener('keydown', (event) => {
   if (event.code === 'KeyR') {
-    bulletCount = 10;
+    bulletCount = 30;
     updateBulletDisplay();
     console.log('Reloaded!');
   }
@@ -533,21 +605,91 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(ambientLight);
+const flashlight = new THREE.SpotLight(0xffffff, 1, 20, Math.PI / 6, 0.5, 1); // White, intense light, 20 units long range
+flashlight.position.set(0.9, -0.9, -1.2); // Position it near the gun muzzle
+flashlight.target = new THREE.Object3D(); // Set the target of the flashlight to where the gun is aiming
+flashlight.target.position.set(0, 0, -10); // Default target direction (adjust as needed)
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(5, 10, 5);
-directionalLight.castShadow = true;
-scene.add(directionalLight);
+// Adjust light properties to make it look like a flashlight
+flashlight.angle = Math.PI / 6; // Narrow cone angle (like a flashlight)
+flashlight.penumbra = 0.5; // Soft edges on the light
+flashlight.distance = 10; // The distance the flashlight can reach
+
+scene.add(flashlight);
+scene.add(flashlight.target);
+
+function updateFlashlightPosition() {
+  if (gun) {
+    flashlight.position.copy(gun.position);
+    flashlight.rotation.copy(gun.rotation); // Make the flashlight rotation follow the gun's rotation
+    flashlight.target.position.set(
+      camera.position.x + Math.sin(camera.rotation.y) * 10, // Direction based on camera's rotation
+      camera.position.y,
+      camera.position.z + Math.cos(camera.rotation.y) * 10
+    );
+    flashlight.target.updateMatrixWorld(); // Update the target's world matrix
+  }
+}
 
 let runBobbingTime = 0;
 let gunBobbingTime = 0;
+
+const firingRate = 0.1;
+
+let isFiring = false;
+let firingInterval: ReturnType<typeof setInterval> | null = null;
+
+document.addEventListener('mousedown', () => {
+  if (document.pointerLockElement === document.body && !isFiring) {
+    isFiring = true;
+    firingInterval = setInterval(() => {
+      if (bulletCount > 0) {
+        if (gunshotSound.isPlaying) {
+          gunshotSound.stop();
+        }
+        gunshotSound.play();
+
+        const laser = createLaser();
+        lasers.push(laser);
+        scene.add(laser);
+
+        const flashMesh = createMuzzleFlash();
+        scene.add(flashMesh);
+
+        setTimeout(() => {
+          scene.remove(flashMesh);
+        }, 100);
+
+        bulletCount--;
+        updateBulletDisplay();
+
+        currentRecoil = maxRecoil;
+        recoilDirection = Math.random() > 0.5 ? 1 : -1;
+
+        let inactiveLasers = lasers.filter((l) => l.userData.active === false);
+        scene.remove(...inactiveLasers);
+        lasers = lasers.filter((l) => l.userData.active === true);
+      } else {
+        console.log('Out of bullets!');
+      }
+    }, firingRate * 1000);
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  isFiring = false;
+  if (firingInterval) {
+    clearInterval(firingInterval);
+    firingInterval = null;
+  }
+});
 
 function animate() {
   const deltaTime = clock.getDelta();
   controls(deltaTime);
   updatePlayer(deltaTime);
+  updateFlashlightPosition();
+  updateHealthDisplay();
 
   if (
     keyStates['KeyW'] ||
@@ -569,7 +711,7 @@ function animate() {
   if (zombieMixer) {
     zombieMixer.update(deltaTime);
   }
-  moveZombie(deltaTime);
+  // moveZombie(deltaTime);
   checkPlayerZombieCollision();
   crosshairs.position.set(mousePosition.x, mousePosition.y, -1);
   lasers.forEach((laser) => laser.userData.update());
