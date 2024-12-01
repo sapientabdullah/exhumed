@@ -115,28 +115,56 @@ class Terrain {
 
     return path;
   }
-
   createTrees(): THREE.Group {
     const treeGroup = new THREE.Group();
     const loader = new GLTFLoader();
+
     loader.load('/pine-large.glb', (gltf) => {
       const treeModel = gltf.scene;
-      treeModel.scale.set(0.3, 0.3, 0.3);
-      const treeSpacing = 10;
-      const treeCount = Math.floor(this.height / treeSpacing);
+
+      const treeCount = 100;
+      const maxSize = 0.5;
+      const minSize = 0.1;
+      const pathWidth = 10;
 
       for (let i = 0; i < treeCount; i++) {
-        const leftTree = treeModel.clone();
-        leftTree.position.set(-5, 0, i * treeSpacing - this.height / 2);
+        const randomX = Math.random() * this.width - this.width / 2;
+        const randomZ = Math.random() * this.height - this.height / 2;
 
-        const rightTree = treeModel.clone();
-        rightTree.position.set(5, 0, i * treeSpacing - this.height / 2);
+        if (Math.abs(randomX) < pathWidth / 2) {
+          i--;
+          continue;
+        }
 
-        treeGroup.add(leftTree, rightTree);
+        const height = this.getTerrainHeight(randomX, randomZ);
+
+        const tree = treeModel.clone();
+        tree.position.set(randomX, height, randomZ);
+
+        const randomScale = Math.random() * (maxSize - minSize) + minSize;
+        tree.scale.set(randomScale, randomScale, randomScale);
+
+        treeGroup.add(tree);
       }
     });
 
     return treeGroup;
+  }
+
+  getTerrainHeight(x: number, z: number): number {
+    const terrainGeometry = this.terrainMesh.geometry;
+    const positionAttribute = terrainGeometry.attributes.position;
+
+    for (let i = 0; i < positionAttribute.count; i++) {
+      const terrainX = positionAttribute.getX(i);
+      const terrainZ = positionAttribute.getY(i);
+
+      if (Math.abs(terrainX - x) < 1 && Math.abs(terrainZ - z) < 1) {
+        return positionAttribute.getZ(i);
+      }
+    }
+
+    return 0;
   }
 }
 
