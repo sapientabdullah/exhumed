@@ -59,9 +59,9 @@ const zombieGroup = new THREE.Group();
 const zombieMixers: THREE.AnimationMixer[] = [];
 scene.add(zombieGroup);
 
-const numZombies = 5;
+const numZombies = 1;
 for (let i = 0; i < numZombies; i++) {
-  zombieLoader.load('/zombie1/scene.gltf', (gltf) => {
+  zombieLoader.load('/Low Poly Zombie Game Animation/scene.gltf', (gltf) => {
     const zombie = gltf.scene;
     zombie.scale.set(0.005, 0.005, 0.005);
     zombie.position.set(
@@ -147,8 +147,8 @@ function updateHealthDisplay() {
 updateHealthDisplay();
 
 const playerCollider = new Capsule(
-  new THREE.Vector3(0, 0.35, 0),
-  new THREE.Vector3(0, 1, 0),
+  new THREE.Vector3(0, 5, 0),
+  new THREE.Vector3(0, 5, 0),
   0.35
 );
 
@@ -216,7 +216,7 @@ function updatePlayer(deltaTime: number) {
 function playerCollisions() {
   if (camera.position.y <= -25) teleportPlayer();
 
-  playerOnFloor = camera.position.y <= 1;
+  playerOnFloor = camera.position.y <= 5;
   if (playerOnFloor) playerVelocity.y = 0;
 }
 
@@ -456,29 +456,34 @@ document.addEventListener('keydown', (event) => {
   }
 });
 
-const flashlight = new THREE.SpotLight(0xffffff, 1, 20, Math.PI / 6, 0.5, 1); // White, intense light, 20 units long range
-flashlight.position.set(0.9, -0.9, -1.2); // Position it near the gun muzzle
-flashlight.target = new THREE.Object3D(); // Set the target of the flashlight to where the gun is aiming
-flashlight.target.position.set(0, 0, -10); // Default target direction (adjust as needed)
+const flashlight = new THREE.SpotLight(0xffffff, 2, 50, Math.PI / 4, 0.8, 1);
+flashlight.position.set(0.9, -0.9, -1.2);
+flashlight.target = new THREE.Object3D();
+flashlight.target.position.set(0, 0, -10);
 
-// Adjust light properties to make it look like a flashlight
-flashlight.angle = Math.PI / 6; // Narrow cone angle (like a flashlight)
-flashlight.penumbra = 0.5; // Soft edges on the light
-flashlight.distance = 10; // The distance the flashlight can reach
+flashlight.angle = Math.PI / 3;
+flashlight.penumbra = 0.8;
+flashlight.distance = 30;
+flashlight.intensity = 3;
 
 scene.add(flashlight);
 scene.add(flashlight.target);
 
 function updateFlashlightPosition() {
   if (gun) {
-    flashlight.position.copy(gun.position);
-    flashlight.rotation.copy(gun.rotation); // Make the flashlight rotation follow the gun's rotation
-    flashlight.target.position.set(
-      camera.position.x + Math.sin(camera.rotation.y) * 10, // Direction based on camera's rotation
-      camera.position.y,
-      camera.position.z + Math.cos(camera.rotation.y) * 10
+    // Position the flashlight to match the gun's position
+    flashlight.position.copy(gun.getWorldPosition(new THREE.Vector3()));
+
+    // Calculate the flashlight's target position based on the camera's forward direction
+    const flashlightTargetDirection = new THREE.Vector3();
+    camera.getWorldDirection(flashlightTargetDirection); // Get camera's forward direction
+    flashlightTargetDirection.multiplyScalar(10); // Scale to a visible range
+
+    // Update the flashlight target position
+    flashlight.target.position.copy(
+      flashlight.position.clone().add(flashlightTargetDirection)
     );
-    flashlight.target.updateMatrixWorld(); // Update the target's world matrix
+    flashlight.target.updateMatrixWorld();
   }
 }
 
