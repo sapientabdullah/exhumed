@@ -7,12 +7,13 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 import Terrain from './classes/terrain';
 import { AudioManager } from './classes/audioManager';
 import { Capsule } from 'three/examples/jsm/Addons.js';
+import { loadModels } from './utils/loadModels';
 
 let w = innerWidth;
 let h = innerHeight;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+export const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
 camera.rotation.order = 'YXZ';
 scene.add(camera);
 
@@ -34,7 +35,7 @@ renderer.setClearColor(fogColor);
 const stats = new Stats() as any;
 document.body.appendChild(stats.domElement);
 
-const loadingManager = new THREE.LoadingManager();
+export const loadingManager = new THREE.LoadingManager();
 
 loadingManager.onStart = (url, itemsLoaded, itemsTotal) => {
   console.log(
@@ -67,7 +68,7 @@ function updateProgressBar(progress: number) {
 const audioManager = new AudioManager(camera, loadingManager);
 
 const loader = new GLTFLoader(loadingManager);
-let gun: THREE.Group;
+let gun: THREE.Object3D;
 
 loader.load('/weapon/scene.gltf', (gltf) => {
   gun = gltf.scene;
@@ -77,110 +78,7 @@ loader.load('/weapon/scene.gltf', (gltf) => {
   camera.add(gun);
 });
 
-const containerLoader = new GLTFLoader(loadingManager);
-let container;
-
-containerLoader.load('/cargo/scene.gltf', (gltf) => {
-  container = gltf.scene;
-  container.scale.set(1, 1, 1);
-  container.position.set(10, 0, 10);
-  container.traverse((node) => {
-    if ((node as THREE.Mesh).isMesh) {
-      node.castShadow = true;
-    }
-  });
-  scene.add(container);
-});
-
-const vehicleLoader = new GLTFLoader(loadingManager);
-let vehicle;
-
-vehicleLoader.load('/vehicle/scene.gltf', (gltf) => {
-  vehicle = gltf.scene;
-  vehicle.scale.set(0.5, 0.5, 0.5);
-  vehicle.position.set(20, 0, 30);
-  vehicle.traverse((node) => {
-    if ((node as THREE.Mesh).isMesh) {
-      node.castShadow = true;
-    }
-  });
-  scene.add(vehicle);
-});
-
-const fenceLoader = new GLTFLoader(loadingManager);
-let fence;
-
-fenceLoader.load('/fence/scene.gltf', (gltf) => {
-  fence = gltf.scene;
-  fence.scale.set(1, 1, 1);
-  fence.position.set(30, 0, 30);
-  fence.traverse((node) => {
-    if ((node as THREE.Mesh).isMesh) {
-      node.castShadow = true;
-    }
-  });
-  scene.add(fence);
-});
-
-const generatorLoader = new GLTFLoader(loadingManager);
-let generator;
-
-generatorLoader.load('/generate/scene.gltf', (gltf) => {
-  generator = gltf.scene;
-  generator.scale.set(0.01, 0.01, 0.01);
-  generator.position.set(20, 1, 20);
-  generator.traverse((node) => {
-    if ((node as THREE.Mesh).isMesh) {
-      node.castShadow = true;
-    }
-  });
-  scene.add(generator);
-});
-
-const poleLoader = new GLTFLoader(loadingManager);
-let pole;
-
-poleLoader.load('/pole/scene.gltf', (gltf) => {
-  pole = gltf.scene;
-  pole.scale.set(0.01, 0.01, 0.01);
-  pole.position.set(20, 1, 20);
-  pole.traverse((node) => {
-    if ((node as THREE.Mesh).isMesh) {
-      node.castShadow = true;
-    }
-  });
-  scene.add(pole);
-});
-
-const boxesLoader = new GLTFLoader(loadingManager);
-let boxes;
-
-boxesLoader.load('/boxes/scene.gltf', (gltf) => {
-  boxes = gltf.scene;
-  boxes.scale.set(5, 5, 5);
-  boxes.position.set(20, 1, 20);
-  boxes.traverse((node) => {
-    if ((node as THREE.Mesh).isMesh) {
-      node.castShadow = true;
-    }
-  });
-  scene.add(boxes);
-});
-
-const barrierLoader = new GLTFLoader(loadingManager);
-let barrier;
-
-barrierLoader.load('/barrier/scene.gltf', (gltf) => {
-  barrier = gltf.scene;
-  barrier.scale.set(1, 1, 1);
-  barrier.position.set(20, 1, 20);
-  barrier.traverse((node) => {
-    if ((node as THREE.Mesh).isMesh) {
-      node.castShadow = true;
-    }
-  });
-  scene.add(barrier);
-});
+loadModels(scene, loadingManager);
 
 const clock = new THREE.Clock();
 
