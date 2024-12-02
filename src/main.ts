@@ -8,6 +8,7 @@ import Terrain from './classes/terrain';
 import { AudioManager } from './classes/audioManager';
 import { Capsule } from 'three/examples/jsm/Addons.js';
 import { loadModels } from './utils/loadModels';
+import { loadingManager } from './utils/loadingManager';
 
 let w = innerWidth;
 let h = innerHeight;
@@ -34,36 +35,6 @@ renderer.setClearColor(fogColor);
 
 const stats = new Stats() as any;
 document.body.appendChild(stats.domElement);
-
-export const loadingManager = new THREE.LoadingManager();
-
-loadingManager.onStart = (url, itemsLoaded, itemsTotal) => {
-  console.log(
-    `Started loading file: ${url}.\nLoaded ${itemsLoaded} of ${itemsTotal} files.`
-  );
-};
-
-loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
-  const progress = (itemsLoaded / itemsTotal) * 100;
-  console.log(`Loading file: ${url}.\nProgress: ${progress.toFixed(2)}%`);
-  updateProgressBar(progress);
-};
-
-loadingManager.onLoad = () => {
-  console.log('All resources loaded!');
-  document.getElementById('loading-screen')?.remove();
-};
-
-loadingManager.onError = (url) => {
-  console.error(`There was an error loading ${url}`);
-};
-
-function updateProgressBar(progress: number) {
-  const progressBar = document.getElementById('progress-bar');
-  if (progressBar) {
-    progressBar.style.width = `${progress}%`;
-  }
-}
 
 const audioManager = new AudioManager(camera, loadingManager);
 
