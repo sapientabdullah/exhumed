@@ -54,24 +54,6 @@ loadModels(scene, loadingManager);
 const clock = new THREE.Clock();
 
 const zombieLoader = new GLTFLoader(loadingManager);
-let zombie: THREE.Group, zombieMixer: THREE.AnimationMixer;
-
-zombieLoader.load('/zombie1/scene.gltf', (gltf) => {
-  zombie = gltf.scene;
-  zombie.scale.set(0.009, 0.009, 0.009);
-  zombie.position.set(5, 0, 5);
-  zombie.traverse((node) => {
-    if ((node as THREE.Mesh).isMesh) {
-      node.castShadow = true;
-    }
-  });
-  scene.add(zombie);
-  zombieMixer = new THREE.AnimationMixer(zombie);
-  const clip = gltf.animations[0];
-  const action = zombieMixer.clipAction(clip);
-  action.play();
-});
-
 const zombieGroup = new THREE.Group();
 const zombieMixers: THREE.AnimationMixer[] = [];
 scene.add(zombieGroup);
@@ -103,14 +85,6 @@ for (let i = 0; i < numZombies; i++) {
     action.play();
   });
 }
-
-// function moveZombie(deltaTime: number) {
-//   if (zombie) {
-//     const direction = new THREE.Vector3();
-//     direction.subVectors(camera.position, zombie.position).normalize();
-//     zombie.position.add(direction.multiplyScalar(1 * deltaTime));
-//   }
-// }
 
 let isPlayerNearZombie = false;
 function checkPlayerZombieCollision() {
@@ -589,7 +563,6 @@ function animate() {
   zombieMixers.forEach((mixer) => {
     mixer.update(deltaTime);
   });
-  // moveZombie(deltaTime);
   checkPlayerZombieCollision();
   crosshairs.position.set(mousePosition.x, mousePosition.y, -1);
   lasers.forEach((laser) => laser.userData.update());
