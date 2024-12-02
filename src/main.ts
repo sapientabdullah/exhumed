@@ -72,6 +72,38 @@ zombieLoader.load('/zombie1/scene.gltf', (gltf) => {
   action.play();
 });
 
+const zombieGroup = new THREE.Group();
+const zombieMixers: THREE.AnimationMixer[] = [];
+scene.add(zombieGroup);
+
+const numZombies = 5;
+for (let i = 0; i < numZombies; i++) {
+  zombieLoader.load('/zombie1/scene.gltf', (gltf) => {
+    const zombie = gltf.scene;
+    zombie.scale.set(0.005, 0.005, 0.005);
+    zombie.position.set(
+      (Math.random() - 0.5) * 30,
+      0,
+      (Math.random() - 0.5) * 30
+    );
+
+    zombie.traverse((node) => {
+      if ((node as THREE.Mesh).isMesh) {
+        node.castShadow = true;
+      }
+    });
+
+    zombieGroup.add(zombie);
+
+    const zombieMixer = new THREE.AnimationMixer(zombie);
+    zombieMixers.push(zombieMixer);
+
+    const clip = gltf.animations[0];
+    const action = zombieMixer.clipAction(clip);
+    action.play();
+  });
+}
+
 // function moveZombie(deltaTime: number) {
 //   if (zombie) {
 //     const direction = new THREE.Vector3();
@@ -133,48 +165,6 @@ function updateHealthDisplay() {
 }
 
 updateHealthDisplay();
-
-const boxGroup = new THREE.Group();
-scene.add(boxGroup);
-
-const numBoxes = 55;
-const size = 0.5;
-const boxGeo = new THREE.BoxGeometry(size, size, size);
-for (let i = 0; i < numBoxes; i++) {
-  const pos = new THREE.Vector3(
-    (Math.random() - 0.5) * 30,
-    size / 2,
-    (Math.random() - 0.5) * 30
-  );
-
-  const color = new THREE.Color().setHSL(Math.random(), 1, 0.5);
-  const boxMat = new THREE.MeshBasicMaterial({
-    color,
-    transparent: true,
-    opacity: 0.5,
-  });
-
-  const hitBox = new THREE.Mesh(boxGeo, boxMat);
-  hitBox.name = 'box';
-  hitBox.position.copy(pos);
-
-  const rote = new THREE.Vector3(
-    Math.random() * Math.PI,
-    Math.random() * Math.PI,
-    Math.random() * Math.PI
-  );
-  hitBox.rotation.set(rote.x, rote.y, rote.z);
-
-  const edges = new THREE.EdgesGeometry(boxGeo, 0.2);
-  const lineMat = new THREE.LineBasicMaterial({ color });
-  const boxLines = new THREE.LineSegments(edges, lineMat);
-  boxLines.position.copy(pos);
-  boxLines.rotation.set(rote.x, rote.y, rote.z);
-
-  hitBox.userData.box = boxLines;
-  boxGroup.add(hitBox);
-  scene.add(boxLines);
-}
 
 const playerCollider = new Capsule(
   new THREE.Vector3(0, 0.35, 0),
@@ -263,7 +253,7 @@ const raycaster = new THREE.Raycaster();
 const direction = new THREE.Vector3();
 const impactPos = new THREE.Vector3();
 const impactColor = new THREE.Color();
-let impactBox: THREE.LineSegments | null = null;
+let impactZombie: THREE.Object3D | null = null;
 let lasers: THREE.Mesh[] = [];
 
 function createBullet() {
@@ -293,7 +283,7 @@ function createBullet() {
 
   direction.subVectors(goalPos, camera.position);
   raycaster.set(camera.position, direction);
-  let intersects = raycaster.intersectObjects([...boxGroup.children], true);
+  let intersects = raycaster.intersectObjects(zombieGroup.children, true);
 
   if (intersects.length > 0) {
     impactPos.copy(intersects[0].point);
@@ -301,9 +291,12 @@ function createBullet() {
       ((intersects[0].object as THREE.Mesh).material as THREE.MeshBasicMaterial)
         .color
     );
-    if (intersects[0].object.name === 'box') {
-      impactBox = intersects[0].object.userData.box;
-      boxGroup.remove(intersects[0].object);
+    if (intersects[0].object instanceof THREE.Mesh) {
+      impactZombie = intersects[0].object;
+      if (impactZombie) {
+        zombieGroup.remove(impactZombie);
+        impactZombie.scale.setScalar(0.0);
+      }
     }
   }
 
@@ -320,7 +313,6 @@ function createBullet() {
           bullet.position.copy(impactPos);
           bullet.material.color.set(impactColor);
           isExploding = true;
-          impactBox?.scale.setScalar(0.0);
         }
       } else {
         if (opacity > 0.01) {
@@ -589,9 +581,9 @@ function animate() {
     gunBobbingTime = 0;
   }
 
-  if (zombieMixer) {
-    zombieMixer.update(deltaTime);
-  }
+  zombieMixers.forEach((mixer) => {
+    mixer.update(deltaTime);
+  });
   // moveZombie(deltaTime);
   checkPlayerZombieCollision();
   crosshairs.position.set(mousePosition.x, mousePosition.y, -1);
