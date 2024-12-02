@@ -234,7 +234,7 @@ const direction = new THREE.Vector3();
 const impactPos = new THREE.Vector3();
 const impactColor = new THREE.Color();
 let impactZombie: THREE.Object3D | null = null;
-let lasers: THREE.Mesh[] = [];
+let bullets: THREE.Mesh[] = [];
 
 function createBullet() {
   const bulletGeo = new THREE.IcosahedronGeometry(0.05, 2);
@@ -255,8 +255,8 @@ function createBullet() {
     .clone()
     .setFromMatrixPosition(crosshairs.matrixWorld);
 
-  const laserDirection = new THREE.Vector3(0, 0, 0);
-  laserDirection
+  const bulletDirection = new THREE.Vector3(0, 0, 0);
+  bulletDirection
     .subVectors(bullet.position, goalPos)
     .normalize()
     .multiplyScalar(speed);
@@ -287,7 +287,7 @@ function createBullet() {
   function update() {
     if (active === true) {
       if (isExploding === false) {
-        bullet.position.sub(laserDirection);
+        bullet.position.sub(bulletDirection);
 
         if (bullet.position.distanceTo(impactPos) < 0.5) {
           bullet.position.copy(impactPos);
@@ -317,37 +317,29 @@ const textureLoader = new THREE.TextureLoader(loadingManager);
 const muzzleFlashTexture = textureLoader.load('/Fireball Illustration PNG.png');
 
 function createMuzzleFlash() {
-  // Create a plane geometry for the muzzle flash
-  const flashGeometry = new THREE.PlaneGeometry(10, 10); // Adjust size as needed
+  const flashGeometry = new THREE.PlaneGeometry(5, 5);
 
-  // Create a material with the loaded texture
   const flashMaterial = new THREE.MeshBasicMaterial({
     map: muzzleFlashTexture,
     transparent: true,
     opacity: 1.0,
-    depthWrite: false, // Ensures the flash doesn't block other objects
-    side: THREE.DoubleSide, // Visible from both sides
-    blending: THREE.AdditiveBlending, // Makes it glow
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
   });
-  // Create the mesh
+
   const flashMesh = new THREE.Mesh(flashGeometry, flashMaterial);
 
-  // Position it at the gun's muzzle (adjust based on your gun model)
-  flashMesh.position.set(-10, -0.9, -10); // Example position; tweak to fit
-  flashMesh.lookAt(camera.position); // Make it face the camera
+  if (gun) {
+    flashMesh.position.copy(gun.getWorldPosition(new THREE.Vector3()));
+    flashMesh.rotation.copy(gun.rotation);
+  }
+
   flashMesh.scale.set(1 + Math.random() * 0.5, 1 + Math.random() * 0.5, 1);
-  flashMesh.rotation.z = Math.random() * Math.PI * 2; // Random rotation
+  flashMesh.rotation.z = Math.random() * Math.PI * 2;
 
   return flashMesh;
 }
-
-const flashLight = new THREE.PointLight(0xffaa33, 1, 10); // Bright orange light
-flashLight.position.set(0.9, -0.9, -1.0); // Match gun muzzle position
-scene.add(flashLight);
-
-setTimeout(() => {
-  scene.remove(flashLight);
-}, 100);
 
 const { terrain } = new Terrain({});
 scene.add(terrain);
@@ -393,9 +385,9 @@ addEventListener('click', () => {
 
       audioManager.shellSound.play();
 
-      const laser = createBullet();
-      lasers.push(laser);
-      scene.add(laser);
+      const bullet = createBullet();
+      bullets.push(bullet);
+      scene.add(bullet);
 
       const flashMesh = createMuzzleFlash();
       scene.add(flashMesh);
@@ -410,9 +402,9 @@ addEventListener('click', () => {
       currentRecoil = maxRecoil;
       recoilDirection = Math.random() > 0.5 ? 1 : -1;
 
-      let inactiveLasers = lasers.filter((l) => l.userData.active === false);
-      scene.remove(...inactiveLasers);
-      lasers = lasers.filter((l) => l.userData.active === true);
+      let inactivebullets = bullets.filter((l) => l.userData.active === false);
+      scene.remove(...inactivebullets);
+      bullets = bullets.filter((l) => l.userData.active === true);
     } else {
       console.log('Out of bullets!');
     }
@@ -507,12 +499,16 @@ document.addEventListener('mousedown', () => {
 
         audioManager.shellSound.play();
 
-        const laser = createBullet();
-        lasers.push(laser);
-        scene.add(laser);
+        const bullet = createBullet();
+        bullets.push(bullet);
+        scene.add(bullet);
 
         const flashMesh = createMuzzleFlash();
         scene.add(flashMesh);
+
+        setTimeout(() => {
+          flashMesh.material.opacity = 0;
+        }, 50);
 
         setTimeout(() => {
           scene.remove(flashMesh);
@@ -524,9 +520,11 @@ document.addEventListener('mousedown', () => {
         currentRecoil = maxRecoil;
         recoilDirection = Math.random() > 0.5 ? 1 : -1;
 
-        let inactiveLasers = lasers.filter((l) => l.userData.active === false);
-        scene.remove(...inactiveLasers);
-        lasers = lasers.filter((l) => l.userData.active === true);
+        let inactivebullets = bullets.filter(
+          (l) => l.userData.active === false
+        );
+        scene.remove(...inactivebullets);
+        bullets = bullets.filter((l) => l.userData.active === true);
       } else {
         console.log('Out of bullets!');
       }
@@ -571,7 +569,7 @@ function animate() {
   });
   checkPlayerZombieCollision();
   crosshairs.position.set(mousePosition.x, mousePosition.y, -1);
-  lasers.forEach((laser) => laser.userData.update());
+  bullets.forEach((bullet) => bullet.userData.update());
 
   if (currentRecoil > 0) {
     camera.position.z -= recoilAmount * recoilDirection;
