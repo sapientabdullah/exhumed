@@ -113,20 +113,25 @@ for (let i = 0; i < numZombies; i++) {
 // }
 
 let isPlayerNearZombie = false;
-
 function checkPlayerZombieCollision() {
-  if (zombie) {
+  let isAnyZombieNear = false;
+
+  zombieGroup.children.forEach((zombie) => {
     const distance = zombie.position.distanceTo(playerCollider.end);
     if (distance < 1.5) {
-      if (!isPlayerNearZombie) {
-        isPlayerNearZombie = true;
-        startHealthDecay();
-      }
-    } else {
-      if (isPlayerNearZombie) {
-        isPlayerNearZombie = false;
-        stopHealthDecay();
-      }
+      isAnyZombieNear = true;
+    }
+  });
+
+  if (isAnyZombieNear) {
+    if (!isPlayerNearZombie) {
+      isPlayerNearZombie = true;
+      startHealthDecay();
+    }
+  } else {
+    if (isPlayerNearZombie) {
+      isPlayerNearZombie = false;
+      stopHealthDecay();
     }
   }
 }
