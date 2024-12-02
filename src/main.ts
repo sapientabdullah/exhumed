@@ -176,24 +176,53 @@ function getSideVector() {
   return playerDirection;
 }
 
+let isWalking = false;
+let isRunning = false;
 function controls(deltaTime: number) {
   let speedMultiplier = 1;
+  let moving = false;
 
   if (keyStates['ShiftLeft']) {
     speedMultiplier = 2;
+    isRunning = true;
+  } else {
+    isRunning = false;
   }
 
   const speedDelta = deltaTime * (playerOnFloor ? 25 : 8) * speedMultiplier;
 
-  if (keyStates['KeyW'])
+  if (keyStates['KeyW']) {
     playerVelocity.add(getForwardVector().multiplyScalar(speedDelta));
-  if (keyStates['KeyS'])
+    moving = true;
+  }
+  if (keyStates['KeyS']) {
     playerVelocity.add(getForwardVector().multiplyScalar(-speedDelta));
-  if (keyStates['KeyA'])
+    moving = true;
+  }
+  if (keyStates['KeyA']) {
     playerVelocity.add(getSideVector().multiplyScalar(-speedDelta));
-  if (keyStates['KeyD'])
+    moving = true;
+  }
+  if (keyStates['KeyD']) {
     playerVelocity.add(getSideVector().multiplyScalar(speedDelta));
+    moving = true;
+  }
   if (playerOnFloor && keyStates['Space']) playerVelocity.y = 15;
+
+  isWalking = moving && !isRunning;
+
+  // Play sounds based on movement state
+  if (isWalking && !audioManager.footstepSound.isPlaying) {
+    audioManager.footstepSound.play();
+  } else if (!isWalking && audioManager.footstepSound.isPlaying) {
+    audioManager.footstepSound.stop();
+  }
+
+  if (isRunning && !audioManager.runningSound.isPlaying) {
+    audioManager.runningSound.play();
+  } else if (!isRunning && audioManager.runningSound.isPlaying) {
+    audioManager.runningSound.stop();
+  }
 }
 
 function updatePlayer(deltaTime: number) {
@@ -546,6 +575,20 @@ function animate() {
   updatePlayer(deltaTime);
   updateFlashlightPosition();
   updateHealthDisplay();
+
+  if (
+    !keyStates['KeyW'] &&
+    !keyStates['KeyA'] &&
+    !keyStates['KeyS'] &&
+    !keyStates['KeyD']
+  ) {
+    if (audioManager.footstepSound.isPlaying) {
+      audioManager.footstepSound.stop();
+    }
+    if (audioManager.runningSound.isPlaying) {
+      audioManager.runningSound.stop();
+    }
+  }
 
   if (
     keyStates['KeyW'] ||
