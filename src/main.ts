@@ -5,7 +5,31 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import Terrain from './classes/terrain';
+import { AudioManager } from './classes/audioManager';
 import { Capsule } from 'three/examples/jsm/Addons.js';
+
+let w = innerWidth;
+let h = innerHeight;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
+camera.rotation.order = 'YXZ';
+scene.add(camera);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(w, h);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.6;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const fogColor = 0xd9c57d;
+const fogDensity = 0.05;
+scene.fog = new THREE.FogExp2(fogColor, fogDensity);
+renderer.setClearColor(fogColor);
 
 const stats = new Stats() as any;
 document.body.appendChild(stats.domElement);
@@ -39,6 +63,8 @@ function updateProgressBar(progress: number) {
     progressBar.style.width = `${progress}%`;
   }
 }
+
+const audioManager = new AudioManager(camera, loadingManager);
 
 const loader = new GLTFLoader(loadingManager);
 let gun: THREE.Group;
@@ -156,29 +182,6 @@ barrierLoader.load('/barrier/scene.gltf', (gltf) => {
   scene.add(barrier);
 });
 
-let w = innerWidth;
-let h = innerHeight;
-const scene = new THREE.Scene();
-
-const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
-camera.rotation.order = 'YXZ';
-scene.add(camera);
-
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(w, h);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.6;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-document.body.appendChild(renderer.domElement);
-
-const fogColor = 0xd9c57d;
-const fogDensity = 0.05;
-scene.fog = new THREE.FogExp2(fogColor, fogDensity);
-renderer.setClearColor(fogColor);
-
 const clock = new THREE.Clock();
 
 const zombieLoader = new GLTFLoader(loadingManager);
@@ -257,18 +260,7 @@ function stopHealthDecay() {
 
 function updateHealthDisplay() {
   let healthDisplay = document.getElementById('health-display');
-  if (!healthDisplay) {
-    healthDisplay = document.createElement('div');
-    healthDisplay.id = 'health-display';
-    healthDisplay.style.position = 'absolute';
-    healthDisplay.style.bottom = '10px';
-    healthDisplay.style.left = '10px';
-    healthDisplay.style.color = 'red';
-    healthDisplay.style.fontSize = '24px';
-    healthDisplay.style.fontFamily = 'Jura, sans-serif';
-    document.body.appendChild(healthDisplay);
-  }
-  healthDisplay.textContent = `${playerHealth} / ${maxHealth}`;
+  healthDisplay!.textContent = `${playerHealth} / ${maxHealth}`;
 }
 
 updateHealthDisplay();
@@ -536,18 +528,7 @@ let bulletCount = 30;
 
 function updateBulletDisplay() {
   let bulletDisplay = document.getElementById('bullet-display');
-  if (!bulletDisplay) {
-    bulletDisplay = document.createElement('div');
-    bulletDisplay.id = 'bullet-display';
-    bulletDisplay.style.position = 'absolute';
-    bulletDisplay.style.bottom = '10px';
-    bulletDisplay.style.right = '10px';
-    bulletDisplay.style.color = 'white';
-    bulletDisplay.style.fontSize = '24px';
-    bulletDisplay.style.fontFamily = 'Jura, sans-serif';
-    document.body.appendChild(bulletDisplay);
-  }
-  bulletDisplay.textContent = `${bulletCount} / Inf`;
+  bulletDisplay!.textContent = `${bulletCount} / Inf`;
 }
 
 updateBulletDisplay();
@@ -561,35 +542,15 @@ let recoilDirection = 0;
 const listener = new THREE.AudioListener();
 camera.add(listener);
 
-const gunshotSound = new THREE.Audio(listener);
-
-const audioLoader = new THREE.AudioLoader(loadingManager);
-audioLoader.load('/audio/weapon/fire.mp3', function (buffer) {
-  gunshotSound.setBuffer(buffer);
-  gunshotSound.setVolume(0.5);
-  gunshotSound.setLoop(false);
-});
-
-const shellSound = new THREE.Audio(listener);
-
-audioLoader.load('/audio/weapon/bulletshells04.mp3', function (buffer) {
-  shellSound.setBuffer(buffer);
-  shellSound.setVolume(0.1);
-  shellSound.setLoop(false);
-});
-
 addEventListener('click', () => {
   if (document.pointerLockElement === document.body) {
     if (bulletCount > 0) {
-      const gunshotSoundInstance = new THREE.Audio(listener);
-      if (gunshotSound.buffer) {
-        gunshotSoundInstance.setBuffer(gunshotSound.buffer);
+      if (audioManager.gunshotSound.isPlaying) {
+        audioManager.gunshotSound.stop();
       }
-      gunshotSoundInstance.setVolume(0.5);
-      gunshotSoundInstance.setLoop(false);
-      gunshotSoundInstance.play();
+      audioManager.gunshotSound.play();
 
-      shellSound.play();
+      audioManager.shellSound.play();
 
       const laser = createBullet();
       lasers.push(laser);
@@ -617,17 +578,9 @@ addEventListener('click', () => {
   }
 });
 
-const reloadSound = new THREE.Audio(listener);
-
-audioLoader.load('/audio/weapon/reload.mp3', function (buffer) {
-  reloadSound.setBuffer(buffer);
-  reloadSound.setVolume(0.5);
-  reloadSound.setLoop(false);
-});
-
 document.addEventListener('keydown', (event) => {
   if (event.code === 'KeyR') {
-    reloadSound.play();
+    audioManager.reloadSound.play();
 
     setTimeout(() => {
       bulletCount = 30;
@@ -701,10 +654,12 @@ document.addEventListener('mousedown', () => {
     isFiring = true;
     firingInterval = setInterval(() => {
       if (bulletCount > 0) {
-        if (gunshotSound.isPlaying) {
-          gunshotSound.stop();
+        if (audioManager.gunshotSound.isPlaying) {
+          audioManager.gunshotSound.stop();
         }
-        gunshotSound.play();
+        audioManager.gunshotSound.play();
+
+        audioManager.shellSound.play();
 
         const laser = createBullet();
         lasers.push(laser);
