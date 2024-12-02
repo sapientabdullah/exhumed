@@ -28,7 +28,8 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
-const fogColor = 0xd9c57d;
+// const fogColor = 0xd9c57d;
+const fogColor = 0x000000;
 const fogDensity = 0.05;
 scene.fog = new THREE.FogExp2(fogColor, fogDensity);
 renderer.setClearColor(fogColor);
@@ -352,7 +353,7 @@ const { terrain } = new Terrain({});
 scene.add(terrain);
 
 new RGBELoader(loadingManager).load(
-  '/background/background4k.hdr',
+  '/background/background 4K.hdr',
   (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     scene.background = texture;
