@@ -9,6 +9,7 @@ export class AudioManager {
   public reloadSound: THREE.Audio;
   public footstepSound: THREE.Audio;
   public runningSound: THREE.Audio;
+  public jumpSound: THREE.Audio;
 
   constructor(camera: THREE.Camera, loadingManager: THREE.LoadingManager) {
     this.listener = new THREE.AudioListener();
@@ -25,6 +26,7 @@ export class AudioManager {
     this.reloadSound = this.loadSound('/audio/weapon/reload.mp3', 0.5, false);
     this.footstepSound = this.loadSound('/audio/footsteps.mp3', 0.3, true);
     this.runningSound = this.loadSound('/audio/running.mp3', 0.3, true);
+    this.jumpSound = this.loadSound('/audio/player/jump.mp3', 0.5, false);
   }
 
   private loadSound(
