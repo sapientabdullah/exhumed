@@ -29,10 +29,10 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 // const fogColor = 0xd9c57d;
-// const fogColor = 0x000000;
-// const fogDensity = 0.05;
-// scene.fog = new THREE.FogExp2(fogColor, fogDensity);
-// renderer.setClearColor(fogColor);
+const fogColor = 0x000000;
+const fogDensity = 0.05;
+scene.fog = new THREE.FogExp2(fogColor, fogDensity);
+renderer.setClearColor(fogColor);
 
 const stats = new Stats() as any;
 document.body.appendChild(stats.domElement);
@@ -269,15 +269,6 @@ function playerCollisions() {
   if (playerOnFloor) playerVelocity.y = 0;
 }
 
-// function teleportPlayer() {
-//   const randomX = Math.random() * 50 - 25;
-//   const randomZ = Math.random() * 50 - 25;
-//   playerCollider.start.set(randomX, 0.35, randomZ);
-//   playerCollider.end.set(randomX, 1, randomZ);
-//   camera.position.copy(playerCollider.end);
-//   playerVelocity.set(0, 0, 0);
-// }
-
 function teleportPlayer() {
   const mapEndX = 0;
   const mapEndZ = 46;
@@ -408,7 +399,7 @@ const { terrain } = new Terrain({});
 scene.add(terrain);
 
 new RGBELoader(loadingManager).load(
-  '/background/background_day 4k.hdr',
+  'public/background/background 4K.hdr',
   (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     scene.background = texture;
@@ -513,25 +504,24 @@ flashlight.position.set(0.9, -0.9, -1.2);
 flashlight.target = new THREE.Object3D();
 flashlight.target.position.set(0, 0, -10);
 
-flashlight.angle = Math.PI / 3;
-flashlight.penumbra = 0.8;
-flashlight.distance = 30;
-flashlight.intensity = 10;
+flashlight.angle = Math.PI / 2;
+flashlight.penumbra = 1.0;
+flashlight.distance = 50;
+flashlight.intensity = 20;
 
 scene.add(flashlight);
 scene.add(flashlight.target);
 
 function updateFlashlightPosition() {
   if (gun) {
-    // Position the flashlight to match the gun's position
     flashlight.position.copy(gun.getWorldPosition(new THREE.Vector3()));
+    flashlight.position.y += 1;
+    flashlight.position.x -= 3;
 
-    // Calculate the flashlight's target position based on the camera's forward direction
     const flashlightTargetDirection = new THREE.Vector3();
-    camera.getWorldDirection(flashlightTargetDirection); // Get camera's forward direction
-    flashlightTargetDirection.multiplyScalar(10); // Scale to a visible range
+    camera.getWorldDirection(flashlightTargetDirection);
+    flashlightTargetDirection.multiplyScalar(10);
 
-    // Update the flashlight target position
     flashlight.target.position.copy(
       flashlight.position.clone().add(flashlightTargetDirection)
     );
