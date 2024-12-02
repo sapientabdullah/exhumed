@@ -29,10 +29,10 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
 // const fogColor = 0xd9c57d;
-const fogColor = 0x000000;
-const fogDensity = 0.05;
-scene.fog = new THREE.FogExp2(fogColor, fogDensity);
-renderer.setClearColor(fogColor);
+// const fogColor = 0x000000;
+// const fogDensity = 0.05;
+// scene.fog = new THREE.FogExp2(fogColor, fogDensity);
+// renderer.setClearColor(fogColor);
 
 const stats = new Stats() as any;
 document.body.appendChild(stats.domElement);
@@ -59,11 +59,11 @@ const zombieGroup = new THREE.Group();
 const zombieMixers: THREE.AnimationMixer[] = [];
 scene.add(zombieGroup);
 
-const numZombies = 1;
+const numZombies = 5;
 for (let i = 0; i < numZombies; i++) {
   zombieLoader.load('/Low Poly Zombie Game Animation/scene.gltf', (gltf) => {
     const zombie = gltf.scene;
-    zombie.scale.set(0.005, 0.005, 0.005);
+    zombie.scale.set(0.25, 0.25, 0.25);
     zombie.position.set(
       (Math.random() - 0.5) * 30,
       0,
@@ -81,7 +81,7 @@ for (let i = 0; i < numZombies; i++) {
     const zombieMixer = new THREE.AnimationMixer(zombie);
     zombieMixers.push(zombieMixer);
 
-    const clip = gltf.animations[0];
+    const clip = gltf.animations[1];
     const action = zombieMixer.clipAction(clip);
     action.play();
   });
@@ -345,7 +345,7 @@ const { terrain } = new Terrain({});
 scene.add(terrain);
 
 new RGBELoader(loadingManager).load(
-  '/background/background 4K.hdr',
+  '/background/background_day 4k.hdr',
   (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     scene.background = texture;
@@ -456,7 +456,7 @@ flashlight.target.position.set(0, 0, -10);
 flashlight.angle = Math.PI / 3;
 flashlight.penumbra = 0.8;
 flashlight.distance = 30;
-flashlight.intensity = 3;
+flashlight.intensity = 10;
 
 scene.add(flashlight);
 scene.add(flashlight.target);
@@ -563,6 +563,70 @@ function animate() {
     runBobbingTime = 0;
     gunBobbingTime = 0;
   }
+
+  const zombieSpeed = 2;
+  const separationRadius = 2.0;
+  const separationStrength = 1.0;
+  const groundLevel = 0;
+
+  zombieGroup.children.forEach((zombie, index) => {
+    const directionToPlayer = new THREE.Vector3();
+    directionToPlayer
+      .subVectors(
+        new THREE.Vector3(
+          playerCollider.end.x,
+          groundLevel,
+          playerCollider.end.z
+        ),
+        new THREE.Vector3(zombie.position.x, groundLevel, zombie.position.z)
+      )
+      .normalize();
+
+    const separationForce = new THREE.Vector3();
+    zombieGroup.children.forEach((otherZombie, otherIndex) => {
+      if (index !== otherIndex) {
+        const distance = zombie.position.distanceTo(otherZombie.position);
+        if (distance < separationRadius) {
+          const avoidDirection = new THREE.Vector3();
+          avoidDirection
+            .subVectors(
+              new THREE.Vector3(
+                zombie.position.x,
+                groundLevel,
+                zombie.position.z
+              ),
+              new THREE.Vector3(
+                otherZombie.position.x,
+                groundLevel,
+                otherZombie.position.z
+              )
+            )
+            .normalize()
+            .multiplyScalar((separationRadius - distance) / separationRadius);
+          separationForce.add(avoidDirection);
+        }
+      }
+    });
+
+    const combinedForce = new THREE.Vector3();
+    combinedForce
+      .add(directionToPlayer.multiplyScalar(1.0))
+      .add(separationForce.multiplyScalar(separationStrength));
+
+    combinedForce.normalize();
+    const moveStep = combinedForce.multiplyScalar(zombieSpeed * deltaTime);
+
+    zombie.position.add(new THREE.Vector3(moveStep.x, 0, moveStep.z));
+    zombie.position.y = groundLevel;
+
+    zombie.lookAt(
+      new THREE.Vector3(
+        playerCollider.end.x,
+        zombie.position.y,
+        playerCollider.end.z
+      )
+    );
+  });
 
   zombieMixers.forEach((mixer) => {
     mixer.update(deltaTime);
