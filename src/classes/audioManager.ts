@@ -26,7 +26,7 @@ export class AudioManager {
     this.reloadSound = this.loadSound('/audio/weapon/reload.mp3', 0.5, false);
     this.footstepSound = this.loadSound('/audio/footsteps.mp3', 0.3, true);
     this.runningSound = this.loadSound('/audio/running.mp3', 0.3, true);
-    this.jumpSound = this.loadSound('/audio/player/jump.mp3', 0.5, false);
+    this.jumpSound = this.loadSound('/audio/weapon/jump.wav', 0.5, false);
   }
 
   private loadSound(

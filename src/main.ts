@@ -39,6 +39,19 @@ document.body.appendChild(stats.domElement);
 
 const audioManager = new AudioManager(camera, loadingManager);
 
+const listener = new THREE.AudioListener();
+camera.add(listener);
+
+const backgroundMusic = new THREE.Audio(listener);
+
+const audioLoader = new THREE.AudioLoader();
+audioLoader.load('/audio/bg_music2.mp3', function (buffer) {
+  backgroundMusic.setBuffer(buffer);
+  backgroundMusic.setLoop(true);
+  backgroundMusic.setVolume(0.5);
+  backgroundMusic.play();
+});
+
 const loader = new GLTFLoader(loadingManager);
 let gun: THREE.Object3D;
 
@@ -65,9 +78,9 @@ for (let i = 0; i < numZombies; i++) {
     const zombie = gltf.scene;
     zombie.scale.set(0.25, 0.25, 0.25);
     zombie.position.set(
-      (Math.random() - 0.5) * 30,
+      (Math.random() - 0.5) * 100,
       0,
-      (Math.random() - 0.5) * 30
+      (Math.random() - 0.5) * 100
     );
 
     zombie.traverse((node) => {
@@ -207,8 +220,15 @@ function controls(deltaTime: number) {
     playerVelocity.add(getSideVector().multiplyScalar(speedDelta));
     moving = true;
   }
-  if (playerOnFloor && keyStates['Space']) playerVelocity.y = 15;
+  if (playerOnFloor && keyStates['Space']) {
+    playerVelocity.y = 15;
 
+    if (audioManager.jumpSound.isPlaying) {
+      audioManager.jumpSound.stop();
+    }
+
+    audioManager.jumpSound.play();
+  }
   isWalking = moving && !isRunning;
 
   // Play sounds based on movement state
@@ -249,14 +269,28 @@ function playerCollisions() {
   if (playerOnFloor) playerVelocity.y = 0;
 }
 
+// function teleportPlayer() {
+//   const randomX = Math.random() * 50 - 25;
+//   const randomZ = Math.random() * 50 - 25;
+//   playerCollider.start.set(randomX, 0.35, randomZ);
+//   playerCollider.end.set(randomX, 1, randomZ);
+//   camera.position.copy(playerCollider.end);
+//   playerVelocity.set(0, 0, 0);
+// }
+
 function teleportPlayer() {
-  const randomX = Math.random() * 50 - 25;
-  const randomZ = Math.random() * 50 - 25;
-  playerCollider.start.set(randomX, 0.35, randomZ);
-  playerCollider.end.set(randomX, 1, randomZ);
+  const mapEndX = 0;
+  const mapEndZ = 46;
+
+  const playerHeight = 5;
+
+  playerCollider.start.set(mapEndX, playerHeight / 2, mapEndZ);
+  playerCollider.end.set(mapEndX, playerHeight, mapEndZ);
   camera.position.copy(playerCollider.end);
   playerVelocity.set(0, 0, 0);
 }
+
+teleportPlayer();
 
 const raycaster = new THREE.Raycaster();
 const direction = new THREE.Vector3();
@@ -400,9 +434,6 @@ let recoilSpeed = 0.1;
 let maxRecoil = 0.3;
 let currentRecoil = 0;
 let recoilDirection = 0;
-
-const listener = new THREE.AudioListener();
-camera.add(listener);
 
 addEventListener('click', () => {
   if (document.pointerLockElement === document.body) {
@@ -609,7 +640,7 @@ function animate() {
 
   const zombieSpeed = 2;
   const separationRadius = 2.0;
-  const separationStrength = 1.0;
+  const separationStrength = 100.0;
   const groundLevel = 0;
 
   zombieGroup.children.forEach((zombie, index) => {
