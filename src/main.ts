@@ -9,6 +9,7 @@ import { Capsule } from 'three/examples/jsm/Addons.js';
 import { loadModels } from './utils/loadModels';
 import { loadingManager } from './utils/loadingManager';
 import { initializeScene } from './utils/initScene';
+import DynamicTerrain from './classes/dyTerrain';
 
 const { scene, camera, renderer, stats } = initializeScene();
 
@@ -341,9 +342,6 @@ function createMuzzleFlash() {
   return flashMesh;
 }
 
-const { terrain } = new Terrain({});
-scene.add(terrain);
-
 let mousePosition = new THREE.Vector2();
 export const crosshairs = createCrosshairs();
 camera.add(crosshairs);
@@ -527,11 +525,18 @@ document.addEventListener('mouseup', () => {
   }
 });
 
+const terrainManager = new DynamicTerrain({ chunkSize: 100, maxChunks: 5 });
+scene.add(terrainManager.terrainChunks);
+
+// const { terrain } = new Terrain({});
+// scene.add(terrain);
+
 function animate() {
   const deltaTime = clock.getDelta();
   controls(deltaTime);
   updatePlayer(deltaTime);
   updateFlashlightPosition();
+  terrainManager.update(camera.position);
 
   if (
     !keyStates['KeyW'] &&

@@ -34,7 +34,7 @@ export function initializeScene() {
   document.body.appendChild(stats.domElement);
 
   new RGBELoader(loadingManager).load(
-    '/background/background 4K.hdr',
+    '/background/background_day 4k.hdr',
     (texture) => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       scene.background = texture;
