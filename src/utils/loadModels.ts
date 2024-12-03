@@ -6,6 +6,7 @@ export function loadModels(
   loadingManager: THREE.LoadingManager
 ) {
   const loader = new GLTFLoader(loadingManager);
+  const collidableObjects: { mesh: THREE.Object3D; box: THREE.Box3 }[] = [];
 
   const addFence = (x: number, y: number, z: number, rotationY: number) => {
     loader.load('/fence/scene.gltf', (gltf) => {
@@ -19,6 +20,9 @@ export function loadModels(
         }
       });
       scene.add(fence);
+
+      const box = new THREE.Box3().setFromObject(fence);
+      collidableObjects.push({ mesh: fence, box });
     });
   };
 
@@ -38,6 +42,9 @@ export function loadModels(
       }
     });
     scene.add(container);
+
+    const box = new THREE.Box3().setFromObject(container);
+    collidableObjects.push({ mesh: container, box });
   });
 
   loader.load('/vehicle/scene.gltf', (gltf) => {
@@ -51,6 +58,9 @@ export function loadModels(
       }
     });
     scene.add(vehicle);
+
+    const box = new THREE.Box3().setFromObject(vehicle);
+    collidableObjects.push({ mesh: vehicle, box });
   });
 
   loader.load('/generate/scene.gltf', (gltf) => {
@@ -64,6 +74,9 @@ export function loadModels(
       }
     });
     scene.add(generator);
+
+    const box = new THREE.Box3().setFromObject(generator);
+    collidableObjects.push({ mesh: generator, box });
   });
 
   loader.load('/pole/scene.gltf', (gltf) => {
@@ -77,6 +90,9 @@ export function loadModels(
       }
     });
     scene.add(pole);
+
+    const box = new THREE.Box3().setFromObject(pole);
+    collidableObjects.push({ mesh: pole, box });
   });
 
   loader.load('/boxes/scene.gltf', (gltf) => {
@@ -90,6 +106,9 @@ export function loadModels(
       }
     });
     scene.add(boxes);
+
+    const box = new THREE.Box3().setFromObject(boxes);
+    collidableObjects.push({ mesh: boxes, box });
   });
 
   loader.load('/barrier/scene.gltf', (gltf) => {
@@ -103,5 +122,8 @@ export function loadModels(
       }
     });
     scene.add(barrier);
+
+    const box = new THREE.Box3().setFromObject(barrier);
+    collidableObjects.push({ mesh: barrier, box });
   });
 }
