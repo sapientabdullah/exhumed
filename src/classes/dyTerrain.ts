@@ -33,9 +33,17 @@ class DynamicTerrain {
       50,
       50
     );
-    const material = new THREE.MeshLambertMaterial({
-      color: 0x2e8b57,
-      wireframe: false,
+    const loader = new THREE.TextureLoader();
+    const grassTexture = loader.load('/textures/sparse_grass_diff_4k.jpg');
+    const normalTexture = loader.load('/textures/sparse_grass_nor_gl_4k.jpg');
+
+    grassTexture.wrapS = THREE.RepeatWrapping;
+    grassTexture.wrapT = THREE.RepeatWrapping;
+    grassTexture.repeat.set(10, 10);
+
+    const material = new THREE.MeshStandardMaterial({
+      map: grassTexture,
+      normalMap: normalTexture,
     });
 
     geometry.rotateX(-Math.PI / 2);
@@ -45,7 +53,7 @@ class DynamicTerrain {
       const x = vertices[i] + xOffset;
       const z = vertices[i + 2] + zOffset;
       vertices[i + 1] =
-        this.noiseGenerator.noise(x / 50, z / 50, this.seed) * 5;
+        this.noiseGenerator.noise(x / 50, z / 50, this.seed) * 2;
     }
     geometry.attributes.position.needsUpdate = true;
     geometry.computeVertexNormals();

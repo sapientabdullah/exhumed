@@ -50,7 +50,7 @@ const zombieGroup = new THREE.Group();
 const zombieMixers: THREE.AnimationMixer[] = [];
 scene.add(zombieGroup);
 
-const numZombies = 1;
+const numZombies = 0;
 for (let i = 0; i < numZombies; i++) {
   zombieLoader.load('/Low Poly Zombie Game Animation/scene.gltf', (gltf) => {
     const zombie = gltf.scene;
@@ -525,18 +525,18 @@ document.addEventListener('mouseup', () => {
   }
 });
 
-const terrainManager = new DynamicTerrain({ chunkSize: 100, maxChunks: 5 });
-scene.add(terrainManager.terrainChunks);
+// const terrainManager = new DynamicTerrain({ chunkSize: 50, maxChunks: 5 });
+// scene.add(terrainManager.terrainChunks);
 
-// const { terrain } = new Terrain({});
-// scene.add(terrain);
+const { terrain } = new Terrain({});
+scene.add(terrain);
 
 function animate() {
   const deltaTime = clock.getDelta();
   controls(deltaTime);
   updatePlayer(deltaTime);
   updateFlashlightPosition();
-  terrainManager.update(camera.position);
+  // terrainManager.update(camera.position);
 
   if (
     !keyStates['KeyW'] &&

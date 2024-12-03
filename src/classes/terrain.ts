@@ -12,6 +12,7 @@ class Terrain {
   widthSegments: number;
   heightSegments: number;
   color: number;
+  walls: THREE.Group;
 
   constructor({
     width = 100,
@@ -36,10 +37,14 @@ class Terrain {
     this.terrainMesh = this.createTerrain();
     this.path = this.createPath();
     this.trees = this.createTrees();
+    this.walls = new THREE.Group();
+
+    this.addWalls();
 
     this.terrain.add(this.terrainMesh);
     this.terrain.add(this.path);
     this.terrain.add(this.trees);
+    this.terrain.add(this.walls);
   }
 
   createTerrain(): THREE.Mesh {
@@ -150,7 +155,44 @@ class Terrain {
 
     return treeGroup;
   }
+  addWalls() {
+    const loader = new THREE.TextureLoader();
+    const wallTexture = loader.load(
+      '/wall_textures/plaster_brick_01_diff_4k.jpg'
+    );
+    const normalMap = loader.load(
+      '/wall_textures/plaster_brick_01_nor_gl_4k.jpg'
+    );
 
+    wallTexture.wrapS = THREE.RepeatWrapping;
+    wallTexture.wrapT = THREE.RepeatWrapping;
+    const repeatX = 10;
+    const repeatY = 1;
+    wallTexture.repeat.set(repeatX, repeatY);
+
+    const wallMaterial = new THREE.MeshStandardMaterial({
+      map: wallTexture,
+      normalMap: normalMap,
+      roughness: 0.7,
+      metalness: 0.1,
+    });
+
+    const leftWallGeometry = new THREE.BoxGeometry(1, 15, this.height);
+    const leftWall = new THREE.Mesh(leftWallGeometry, wallMaterial);
+    leftWall.position.set(-this.width / 2 - 0.5, 4, 0);
+
+    const rightWallGeometry = new THREE.BoxGeometry(1, 15, this.height);
+    const rightWall = new THREE.Mesh(rightWallGeometry, wallMaterial);
+    rightWall.position.set(this.width / 2 + 0.5, 4, 0);
+
+    const topWallGeometry = new THREE.BoxGeometry(this.width, 15, 1);
+    const topWall = new THREE.Mesh(topWallGeometry, wallMaterial);
+    topWall.position.set(0, 4, this.height / 2 + 0.5);
+
+    this.walls.add(leftWall);
+    this.walls.add(rightWall);
+    this.walls.add(topWall);
+  }
   getTerrainHeight(x: number, z: number): number {
     const terrainGeometry = this.terrainMesh.geometry;
     const positionAttribute = terrainGeometry.attributes.position;
@@ -163,7 +205,6 @@ class Terrain {
         return positionAttribute.getZ(i);
       }
     }
-
     return 0;
   }
 }
