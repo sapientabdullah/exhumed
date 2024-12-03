@@ -11,11 +11,9 @@ class DynamicTerrain {
   constructor({
     chunkSize = 100,
     maxChunks = 10,
-    color = 0x2e8b57,
   }: {
     chunkSize?: number;
     maxChunks?: number;
-    color?: number;
   }) {
     this.chunkSize = chunkSize;
     this.maxChunks = maxChunks;
@@ -23,7 +21,6 @@ class DynamicTerrain {
     this.noiseGenerator = new ImprovedNoise();
     this.seed = Math.random() * 100;
 
-    // Initial terrain generation
     for (let i = -1; i < maxChunks; i++) {
       this.addChunk(i * chunkSize, 0);
     }
@@ -43,13 +40,12 @@ class DynamicTerrain {
 
     geometry.rotateX(-Math.PI / 2);
 
-    // Generate heights using Perlin noise
     const vertices = geometry.attributes.position.array;
     for (let i = 0; i < vertices.length; i += 3) {
       const x = vertices[i] + xOffset;
       const z = vertices[i + 2] + zOffset;
       vertices[i + 1] =
-        this.noiseGenerator.noise(x / 50, z / 50, this.seed) * 10; // Adjust scale and amplitude
+        this.noiseGenerator.noise(x / 50, z / 50, this.seed) * 5;
     }
     geometry.attributes.position.needsUpdate = true;
     geometry.computeVertexNormals();
@@ -63,7 +59,6 @@ class DynamicTerrain {
     const playerChunkX = Math.floor(playerPosition.x / this.chunkSize);
     const playerChunkZ = Math.floor(playerPosition.z / this.chunkSize);
 
-    // Remove chunks that are too far
     this.terrainChunks.children = this.terrainChunks.children.filter(
       (chunk) => {
         const dx = Math.abs(chunk.position.x / this.chunkSize - playerChunkX);
@@ -72,7 +67,6 @@ class DynamicTerrain {
       }
     );
 
-    // Add missing chunks
     for (let i = -1; i <= 1; i++) {
       for (let j = -1; j <= 1; j++) {
         const chunkX = (playerChunkX + i) * this.chunkSize;
