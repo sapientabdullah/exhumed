@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { ImprovedNoise } from 'three/examples/jsm/Addons.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-
 class Terrain {
   terrain: THREE.Group;
   terrainMesh: THREE.Mesh;
@@ -88,7 +87,7 @@ class Terrain {
   }
 
   createPath(): THREE.Mesh {
-    const pathWidth = 10;
+    const pathWidth = 15;
     const pathLength = this.height;
 
     const loader = new THREE.TextureLoader();
@@ -116,7 +115,7 @@ class Terrain {
     const path = new THREE.Mesh(pathGeometry, pathMaterial);
 
     path.rotation.x = -Math.PI / 2;
-    path.position.y = 0.1;
+    path.position.y = 0;
 
     return path;
   }
@@ -127,10 +126,10 @@ class Terrain {
     loader.load('/pine-large.glb', (gltf) => {
       const treeModel = gltf.scene;
 
-      const treeCount = 100;
+      const treeCount = 0;
       const maxSize = 0.5;
       const minSize = 0.1;
-      const pathWidth = 10;
+      const pathWidth = 15;
 
       for (let i = 0; i < treeCount; i++) {
         const randomX = Math.random() * this.width - this.width / 2;
