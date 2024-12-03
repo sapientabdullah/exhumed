@@ -2,40 +2,17 @@ import './style.css';
 import * as THREE from 'three';
 import { createCrosshairs } from './utils/createCrosshairs';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
 import Terrain from './classes/terrain';
 import { AudioManager } from './classes/audioManager';
+import { HealthManager } from './classes/healthManager';
 import { Capsule } from 'three/examples/jsm/Addons.js';
 import { loadModels } from './utils/loadModels';
 import { loadingManager } from './utils/loadingManager';
+import { initializeScene } from './utils/initScene';
 
-let w = innerWidth;
-let h = innerHeight;
+const { scene, camera, renderer, stats } = initializeScene();
 
-const scene = new THREE.Scene();
-export const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000);
-camera.rotation.order = 'YXZ';
-scene.add(camera);
-
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(w, h);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.6;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-document.body.appendChild(renderer.domElement);
-
-// const fogColor = 0xd9c57d;
-const fogColor = 0x000000;
-const fogDensity = 0.05;
-scene.fog = new THREE.FogExp2(fogColor, fogDensity);
-renderer.setClearColor(fogColor);
-
-const stats = new Stats() as any;
-document.body.appendChild(stats.domElement);
+export { camera };
 
 const audioManager = new AudioManager(camera, loadingManager);
 
@@ -72,7 +49,7 @@ const zombieGroup = new THREE.Group();
 const zombieMixers: THREE.AnimationMixer[] = [];
 scene.add(zombieGroup);
 
-const numZombies = 5;
+const numZombies = 1;
 for (let i = 0; i < numZombies; i++) {
   zombieLoader.load('/Low Poly Zombie Game Animation/scene.gltf', (gltf) => {
     const zombie = gltf.scene;
@@ -100,7 +77,9 @@ for (let i = 0; i < numZombies; i++) {
   });
 }
 
+const playerHealthManager = new HealthManager(100, 100);
 let isPlayerNearZombie = false;
+
 function checkPlayerZombieCollision() {
   let isAnyZombieNear = false;
 
@@ -114,50 +93,15 @@ function checkPlayerZombieCollision() {
   if (isAnyZombieNear) {
     if (!isPlayerNearZombie) {
       isPlayerNearZombie = true;
-      startHealthDecay();
+      playerHealthManager.startHealthDecay(5, 500);
     }
   } else {
     if (isPlayerNearZombie) {
       isPlayerNearZombie = false;
-      stopHealthDecay();
+      playerHealthManager.stopHealthDecay();
     }
   }
 }
-
-let playerHealth = 100;
-const maxHealth = 100;
-
-let healthDecreaseInterval: ReturnType<typeof setInterval> | undefined =
-  undefined;
-
-function startHealthDecay() {
-  if (!healthDecreaseInterval) {
-    healthDecreaseInterval = setInterval(() => {
-      if (playerHealth > 0) {
-        playerHealth -= 5;
-        updateHealthDisplay();
-      } else {
-        clearInterval(healthDecreaseInterval);
-        healthDecreaseInterval = undefined;
-        console.log('Player is dead');
-      }
-    }, 500);
-  }
-}
-
-function stopHealthDecay() {
-  if (healthDecreaseInterval) {
-    clearInterval(healthDecreaseInterval);
-    healthDecreaseInterval = undefined;
-  }
-}
-
-function updateHealthDisplay() {
-  let healthDisplay = document.getElementById('health-display');
-  healthDisplay!.textContent = `${playerHealth} / ${maxHealth}`;
-}
-
-updateHealthDisplay();
 
 const playerCollider = new Capsule(
   new THREE.Vector3(0, 5, 0),
@@ -231,7 +175,6 @@ function controls(deltaTime: number) {
   }
   isWalking = moving && !isRunning;
 
-  // Play sounds based on movement state
   if (isWalking && !audioManager.footstepSound.isPlaying) {
     audioManager.footstepSound.play();
   } else if (!isWalking && audioManager.footstepSound.isPlaying) {
@@ -385,7 +328,10 @@ function createMuzzleFlash() {
   const flashMesh = new THREE.Mesh(flashGeometry, flashMaterial);
 
   if (gun) {
-    flashMesh.position.copy(gun.getWorldPosition(new THREE.Vector3()));
+    const offset = new THREE.Vector3(0, 0, -3);
+    flashMesh.position
+      .copy(gun.getWorldPosition(new THREE.Vector3()))
+      .add(offset);
     flashMesh.rotation.copy(gun.rotation);
   }
 
@@ -397,15 +343,6 @@ function createMuzzleFlash() {
 
 const { terrain } = new Terrain({});
 scene.add(terrain);
-
-new RGBELoader(loadingManager).load(
-  'public/background/background 4K.hdr',
-  (texture) => {
-    texture.mapping = THREE.EquirectangularReflectionMapping;
-    scene.background = texture;
-    scene.environment = texture;
-  }
-);
 
 let mousePosition = new THREE.Vector2();
 export const crosshairs = createCrosshairs();
@@ -595,7 +532,6 @@ function animate() {
   controls(deltaTime);
   updatePlayer(deltaTime);
   updateFlashlightPosition();
-  updateHealthDisplay();
 
   if (
     !keyStates['KeyW'] &&
@@ -721,11 +657,9 @@ animate();
 addEventListener(
   'resize',
   () => {
-    w = window.innerWidth;
-    h = window.innerHeight;
-    camera.aspect = w / h;
+    camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
+    renderer.setSize(window.innerWidth, window.innerHeight);
     render();
   },
   false
