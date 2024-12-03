@@ -9,14 +9,14 @@ import { Capsule } from 'three/examples/jsm/Addons.js';
 import { loadModels } from './utils/loadModels';
 import { loadingManager } from './utils/loadingManager';
 import { initializeScene } from './utils/initScene';
-import DynamicTerrain from './classes/dyTerrain';
+// import DynamicTerrain from './classes/dyTerrain';
 
 const { scene, camera, renderer, stats } = initializeScene();
 
 export { camera };
 
 const audioManager = new AudioManager(camera, loadingManager);
-
+21;
 const listener = new THREE.AudioListener();
 camera.add(listener);
 
