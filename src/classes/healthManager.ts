@@ -35,7 +35,11 @@ export class HealthManager {
 
   private updateHealthDisplay(): void {
     if (this.healthDisplay) {
-      this.healthDisplay.textContent = `${this.playerHealth} / ${this.maxHealth}`;
+      const svgElement = this.healthDisplay.querySelector('svg');
+      const textElement = this.healthDisplay.querySelector('span');
+      if (svgElement && textElement) {
+        textElement.textContent = `${this.playerHealth} / ${this.maxHealth}`;
+      }
     }
   }
 

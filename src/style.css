@@ -40,3 +40,7 @@ body {
   background: white;
   transition: width 0.3s ease;
 }
+
+.text-shadow {
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.7);
+}

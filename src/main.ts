@@ -14,7 +14,6 @@ const { scene, camera, renderer, stats } = initializeScene();
 
 export { camera };
 
-
 const audioManager = new AudioManager(camera, loadingManager);
 21;
 const listener = new THREE.AudioListener();
@@ -50,7 +49,7 @@ const zombieGroup = new THREE.Group();
 const zombieMixers: THREE.AnimationMixer[] = [];
 scene.add(zombieGroup);
 
-const numZombies = 0;
+const numZombies = 5;
 for (let i = 0; i < numZombies; i++) {
   zombieLoader.load('/Low Poly Zombie Game Animation/scene.gltf', (gltf) => {
     const zombie = gltf.scene;
@@ -141,7 +140,7 @@ function controls(deltaTime: number) {
   let moving = false;
 
   if (keyStates['ShiftLeft']) {
-    speedMultiplier = 2;
+    speedMultiplier = 3;
     isRunning = true;
   } else {
     isRunning = false;
@@ -294,7 +293,7 @@ function createBullet() {
   bullet.rotation.copy(camera.rotation);
 
   let active = true;
-  let speed = 2;
+  let speed = 15;
 
   let goalPos = camera.position
     .clone()
@@ -397,7 +396,12 @@ let bulletCount = 30;
 
 function updateBulletDisplay() {
   let bulletDisplay = document.getElementById('bullet-display');
-  bulletDisplay!.textContent = `${bulletCount} / Inf`;
+  if (bulletDisplay) {
+    const textElement = bulletDisplay.querySelector('span');
+    if (textElement) {
+      textElement.textContent = `${bulletCount} / ∞`;
+    }
+  }
 }
 
 updateBulletDisplay();
@@ -572,126 +576,152 @@ document.addEventListener('mouseup', () => {
   }
 });
 
-// const terrain = new Terrain({ chunkSize: 100, maxChunks: 10 });
+// const terrain = new GenTerrain({ chunkSize: 100, maxChunks: 10 });
 // scene.add(terrain.terrainChunks);
-// scene.add(terrain.walls);
+// // scene.add(terrain.walls);
 // scene.add(terrain.trees);
 
+const pauseMenu = document.getElementById('pause-menu');
+const resumeButton = document.getElementById('resume-button');
+let paused = false;
+
+document.addEventListener('keydown', (event) => {
+  if (event.code === 'KeyP') {
+    paused = !paused;
+
+    if (paused) {
+      pauseMenu!.style.display = 'flex';
+      document.exitPointerLock();
+    } else {
+      pauseMenu!.style.display = 'none';
+      clock.getDelta();
+    }
+  }
+});
+
+resumeButton!.addEventListener('click', () => {
+  paused = false;
+  pauseMenu!.style.display = 'none';
+  clock.getDelta();
+});
+
 function animate() {
-  const deltaTime = clock.getDelta();
-  controls(deltaTime);
-  updatePlayer(deltaTime);
-  updateFlashlightPosition();
-  // terrain.update(camera.position);
+  if (!paused) {
+    const deltaTime = clock.getDelta();
+    controls(deltaTime);
+    updatePlayer(deltaTime);
+    updateFlashlightPosition();
+    // terrain.update(camera.position);
 
-  if (
-    !keyStates['KeyW'] &&
-    !keyStates['KeyA'] &&
-    !keyStates['KeyS'] &&
-    !keyStates['KeyD']
-  ) {
-    if (audioManager.footstepSound.isPlaying) {
-      audioManager.footstepSound.stop();
+    if (
+      !keyStates['KeyW'] &&
+      !keyStates['KeyA'] &&
+      !keyStates['KeyS'] &&
+      !keyStates['KeyD']
+    ) {
+      if (audioManager.footstepSound.isPlaying) {
+        audioManager.footstepSound.stop();
+      }
+      if (audioManager.runningSound.isPlaying) {
+        audioManager.runningSound.stop();
+      }
     }
-    if (audioManager.runningSound.isPlaying) {
-      audioManager.runningSound.stop();
+
+    if (
+      keyStates['KeyW'] ||
+      keyStates['KeyA'] ||
+      keyStates['KeyS'] ||
+      keyStates['KeyD']
+    ) {
+      runBobbingTime += deltaTime * 10; // bobbing speed
+      camera.position.y += Math.sin(runBobbingTime) * 0.08; // bobbing intensity
+      gunBobbingTime += deltaTime * 10; // bobbing speed
+      gun!.position.y = -0.9 + Math.sin(gunBobbingTime) * 0.1; // bobbing intensity in vertical direction
+      gun!.position.x = 0.9 + Math.sin(gunBobbingTime * 0.5) * 0.05; // horizontal sway
+      gun!.position.z = -1.2 + Math.cos(gunBobbingTime * 0.5) * 0.05;
+    } else {
+      runBobbingTime = 0;
+      gunBobbingTime = 0;
     }
-  }
 
-  if (
-    keyStates['KeyW'] ||
-    keyStates['KeyA'] ||
-    keyStates['KeyS'] ||
-    keyStates['KeyD']
-  ) {
-    runBobbingTime += deltaTime * 10; // bobbing speed
-    camera.position.y += Math.sin(runBobbingTime) * 0.08; // bobbing intensity
-    gunBobbingTime += deltaTime * 10; // bobbing speed
-    gun!.position.y = -0.9 + Math.sin(gunBobbingTime) * 0.1; // bobbing intensity in vertical direction
-    gun!.position.x = 0.9 + Math.sin(gunBobbingTime * 0.5) * 0.05; // horizontal sway
-    gun!.position.z = -1.2 + Math.cos(gunBobbingTime * 0.5) * 0.05;
-  } else {
-    runBobbingTime = 0;
-    gunBobbingTime = 0;
-  }
+    const zombieSpeed = 2;
+    const separationRadius = 2.0;
+    const separationStrength = 100.0;
+    const groundLevel = 0;
 
-  const zombieSpeed = 2;
-  const separationRadius = 2.0;
-  const separationStrength = 100.0;
-  const groundLevel = 0;
+    zombieGroup.children.forEach((zombie, index) => {
+      const directionToPlayer = new THREE.Vector3();
+      directionToPlayer
+        .subVectors(
+          new THREE.Vector3(
+            playerCollider.end.x,
+            groundLevel,
+            playerCollider.end.z
+          ),
+          new THREE.Vector3(zombie.position.x, groundLevel, zombie.position.z)
+        )
+        .normalize();
 
-  zombieGroup.children.forEach((zombie, index) => {
-    const directionToPlayer = new THREE.Vector3();
-    directionToPlayer
-      .subVectors(
+      const separationForce = new THREE.Vector3();
+      zombieGroup.children.forEach((otherZombie, otherIndex) => {
+        if (index !== otherIndex) {
+          const distance = zombie.position.distanceTo(otherZombie.position);
+          if (distance < separationRadius) {
+            const avoidDirection = new THREE.Vector3();
+            avoidDirection
+              .subVectors(
+                new THREE.Vector3(
+                  zombie.position.x,
+                  groundLevel,
+                  zombie.position.z
+                ),
+                new THREE.Vector3(
+                  otherZombie.position.x,
+                  groundLevel,
+                  otherZombie.position.z
+                )
+              )
+              .normalize()
+              .multiplyScalar((separationRadius - distance) / separationRadius);
+            separationForce.add(avoidDirection);
+          }
+        }
+      });
+
+      const combinedForce = new THREE.Vector3();
+      combinedForce
+        .add(directionToPlayer.multiplyScalar(1.0))
+        .add(separationForce.multiplyScalar(separationStrength));
+
+      combinedForce.normalize();
+      const moveStep = combinedForce.multiplyScalar(zombieSpeed * deltaTime);
+
+      zombie.position.add(new THREE.Vector3(moveStep.x, 0, moveStep.z));
+      zombie.position.y = groundLevel;
+
+      zombie.lookAt(
         new THREE.Vector3(
           playerCollider.end.x,
-          groundLevel,
+          zombie.position.y,
           playerCollider.end.z
-        ),
-        new THREE.Vector3(zombie.position.x, groundLevel, zombie.position.z)
-      )
-      .normalize();
-
-    const separationForce = new THREE.Vector3();
-    zombieGroup.children.forEach((otherZombie, otherIndex) => {
-      if (index !== otherIndex) {
-        const distance = zombie.position.distanceTo(otherZombie.position);
-        if (distance < separationRadius) {
-          const avoidDirection = new THREE.Vector3();
-          avoidDirection
-            .subVectors(
-              new THREE.Vector3(
-                zombie.position.x,
-                groundLevel,
-                zombie.position.z
-              ),
-              new THREE.Vector3(
-                otherZombie.position.x,
-                groundLevel,
-                otherZombie.position.z
-              )
-            )
-            .normalize()
-            .multiplyScalar((separationRadius - distance) / separationRadius);
-          separationForce.add(avoidDirection);
-        }
-      }
+        )
+      );
     });
 
-    const combinedForce = new THREE.Vector3();
-    combinedForce
-      .add(directionToPlayer.multiplyScalar(1.0))
-      .add(separationForce.multiplyScalar(separationStrength));
+    zombieMixers.forEach((mixer) => {
+      mixer.update(deltaTime);
+    });
+    checkPlayerZombieCollision();
+    crosshairs.position.set(mousePosition.x, mousePosition.y, -1);
+    bullets.forEach((bullet) => bullet.userData.update());
 
-    combinedForce.normalize();
-    const moveStep = combinedForce.multiplyScalar(zombieSpeed * deltaTime);
+    if (currentRecoil > 0) {
+      camera.position.z -= recoilAmount * recoilDirection;
+      gun!.position.z -= recoilAmount * recoilDirection;
 
-    zombie.position.add(new THREE.Vector3(moveStep.x, 0, moveStep.z));
-    zombie.position.y = groundLevel;
-
-    zombie.lookAt(
-      new THREE.Vector3(
-        playerCollider.end.x,
-        zombie.position.y,
-        playerCollider.end.z
-      )
-    );
-  });
-
-  zombieMixers.forEach((mixer) => {
-    mixer.update(deltaTime);
-  });
-  checkPlayerZombieCollision();
-  crosshairs.position.set(mousePosition.x, mousePosition.y, -1);
-  bullets.forEach((bullet) => bullet.userData.update());
-
-  if (currentRecoil > 0) {
-    camera.position.z -= recoilAmount * recoilDirection;
-    gun!.position.z -= recoilAmount * recoilDirection;
-
-    currentRecoil -= recoilSpeed;
-    if (currentRecoil < 0) currentRecoil = 0;
+      currentRecoil -= recoilSpeed;
+      if (currentRecoil < 0) currentRecoil = 0;
+    }
   }
 
   render();

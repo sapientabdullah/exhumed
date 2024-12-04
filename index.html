@@ -6,20 +6,47 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FPS Game</title>
+  <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.0.24/dist/tailwind.min.js"></script>
 </head>
 
-<body>
+<body class="bg-gray-900">
+
   <div id="app"></div>
   <div id="loading-screen">
     <div id="progress-bar-container">
       <div id="progress-bar"></div>
     </div>
   </div>
-  <div id="bullet-display" class="absolute bottom-8 right-5 text-white text-3xl border-b-[0.5px] py-2 select-none">
+
+  <div id="bullet-display"
+    class="absolute bottom-12 right-6 text-white text-3xl font-bold py-2 px-4 select-none rotate-12 text-shadow flex items-center space-x-2">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="fill-current text-white">
+      <g transform="scale(1, -1) translate(0, -24)">
+        <rect x="7" y="3" width="10" height="18" rx="3" />
+        <rect x="8" y="0" width="8" height="3" rx="1" />
+      </g>
+    </svg>
+    <span></span>
   </div>
+
   <div id="health-display"
-    class="absolute bottom-8 left-5 text-red-600 text-3xl border-red-600 border-b-[0.5px] py-2 select-none">
+    class="absolute bottom-12 left-6 text-white text-3xl font-bold py-2 px-4 select-none -rotate-12 text-shadow flex items-center space-x-2">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" class="fill-current text-white">
+      <path
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+    <span></span>
   </div>
+
+  <div id="pause-menu" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden">
+    <div class="bg-black text-white bg-opacity-40 shadow-lg rounded-lg p-8 w-3/4 max-w-md">
+      <h2 class="text-2xl font-bold mb-4 text-center">Paused</h2>
+      <button id="resume-button" class="w-full py-2 px-4 bg-black text-white rounded-lg">
+        Resume
+      </button>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 
