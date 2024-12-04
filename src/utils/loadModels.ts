@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+export const collidableObjects: { mesh: THREE.Object3D; box: THREE.Box3 }[] =
+  [];
 export function loadModels(
   scene: THREE.Scene,
   loadingManager: THREE.LoadingManager
 ) {
   const loader = new GLTFLoader(loadingManager);
-  const collidableObjects: { mesh: THREE.Object3D; box: THREE.Box3 }[] = [];
 
   const addFence = (x: number, y: number, z: number, rotationY: number) => {
     loader.load('/fence/scene.gltf', (gltf) => {

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ImprovedNoise } from 'three/examples/jsm/Addons.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
 class Terrain {
   terrain: THREE.Group;
   terrainMesh: THREE.Mesh;

@@ -2,14 +2,13 @@ import './style.css';
 import * as THREE from 'three';
 import { createCrosshairs } from './utils/createCrosshairs';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import Terrain from './classes/terrain';
 import { AudioManager } from './classes/audioManager';
 import { HealthManager } from './classes/healthManager';
 import { Capsule } from 'three/examples/jsm/Addons.js';
-import { loadModels } from './utils/loadModels';
+import { collidableObjects, loadModels } from './utils/loadModels';
 import { loadingManager } from './utils/loadingManager';
 import { initializeScene } from './utils/initScene';
-// import DynamicTerrain from './classes/dyTerrain';
+// import GenTerrain from './classes/genTerrain';
 
 const { scene, camera, renderer, stats } = initializeScene();
 
@@ -211,6 +210,53 @@ function playerCollisions() {
 
   playerOnFloor = camera.position.y <= 5;
   if (playerOnFloor) playerVelocity.y = 0;
+
+  const playerBoundingBox = new THREE.Box3().setFromPoints([
+    playerCollider.start,
+    playerCollider.end,
+  ]);
+
+  collidableObjects.forEach(({ box }) => {
+    if (playerBoundingBox.intersectsBox(box)) {
+      resolveCollision(playerBoundingBox, box);
+    }
+  });
+}
+
+function resolveCollision(playerBox: THREE.Box3, objectBox: THREE.Box3) {
+  const playerMin = playerBox.min;
+  const playerMax = playerBox.max;
+  const objectMin = objectBox.min;
+  const objectMax = objectBox.max;
+
+  const overlapX =
+    playerMax.x > objectMin.x && playerMin.x < objectMax.x
+      ? Math.min(objectMax.x - playerMin.x, playerMax.x - objectMin.x)
+      : 0;
+  const overlapY =
+    playerMax.y > objectMin.y && playerMin.y < objectMax.y
+      ? Math.min(objectMax.y - playerMin.y, playerMax.y - objectMin.y)
+      : 0;
+  const overlapZ =
+    playerMax.z > objectMin.z && playerMin.z < objectMax.z
+      ? Math.min(objectMax.z - playerMin.z, playerMax.z - objectMin.z)
+      : 0;
+
+  if (overlapX > 0 && overlapX < overlapY && overlapX < overlapZ) {
+    playerCollider.translate(
+      new THREE.Vector3(playerMax.x > objectMin.x ? -overlapX : overlapX, 0, 0)
+    );
+  } else if (overlapY > 0 && overlapY < overlapX && overlapY < overlapZ) {
+    playerCollider.translate(
+      new THREE.Vector3(0, playerMax.y > objectMin.y ? -overlapY : overlapY, 0)
+    );
+    playerOnFloor = true;
+    playerVelocity.y = 0;
+  } else if (overlapZ > 0) {
+    playerCollider.translate(
+      new THREE.Vector3(0, 0, playerMax.z > objectMin.z ? -overlapZ : overlapZ)
+    );
+  }
 }
 
 function teleportPlayer() {
@@ -525,18 +571,17 @@ document.addEventListener('mouseup', () => {
   }
 });
 
-// const terrainManager = new DynamicTerrain({ chunkSize: 50, maxChunks: 5 });
-// scene.add(terrainManager.terrainChunks);
-
-const { terrain } = new Terrain({});
-scene.add(terrain);
+// const terrain = new Terrain({ chunkSize: 100, maxChunks: 10 });
+// scene.add(terrain.terrainChunks);
+// scene.add(terrain.walls);
+// scene.add(terrain.trees);
 
 function animate() {
   const deltaTime = clock.getDelta();
   controls(deltaTime);
   updatePlayer(deltaTime);
   updateFlashlightPosition();
-  // terrainManager.update(camera.position);
+  // terrain.update(camera.position);
 
   if (
     !keyStates['KeyW'] &&
