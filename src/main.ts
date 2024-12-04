@@ -14,6 +14,7 @@ const { scene, camera, renderer, stats } = initializeScene();
 
 export { camera };
 
+
 const audioManager = new AudioManager(camera, loadingManager);
 21;
 const listener = new THREE.AudioListener();
