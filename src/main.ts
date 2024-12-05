@@ -63,6 +63,7 @@ for (let i = 0; i < numZombies; i++) {
     zombie.traverse((node) => {
       if ((node as THREE.Mesh).isMesh) {
         node.castShadow = true;
+        (node as any).health = Math.floor(Math.random() * 5) + 5;
       }
     });
 
@@ -277,7 +278,6 @@ const raycaster = new THREE.Raycaster();
 const direction = new THREE.Vector3();
 const impactPos = new THREE.Vector3();
 const impactColor = new THREE.Color();
-let impactZombie: THREE.Object3D | null = null;
 let bullets: THREE.Mesh[] = [];
 
 function createBullet() {
@@ -310,16 +310,37 @@ function createBullet() {
   let intersects = raycaster.intersectObjects(zombieGroup.children, true);
 
   if (intersects.length > 0) {
+    const hitObject = intersects[0].object as THREE.Mesh;
+    const zombieHealth = (hitObject as any).health;
     impactPos.copy(intersects[0].point);
     impactColor.copy(
       ((intersects[0].object as THREE.Mesh).material as THREE.MeshBasicMaterial)
         .color
     );
-    if (intersects[0].object instanceof THREE.Mesh) {
-      impactZombie = intersects[0].object;
-      if (impactZombie) {
-        zombieGroup.remove(impactZombie);
-        impactZombie.scale.setScalar(0.0);
+
+    if (zombieHealth !== undefined) {
+      (hitObject as any).health -= 1;
+
+      let parentZombie = hitObject;
+      while (parentZombie.parent && parentZombie.parent !== zombieGroup) {
+        parentZombie = parentZombie.parent as THREE.Mesh;
+      }
+
+      if ((hitObject as any).health <= 0) {
+        zombieGroup.remove(parentZombie);
+        parentZombie.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.geometry.dispose();
+            if (child.material instanceof THREE.Material) {
+              child.material.dispose();
+            }
+          }
+        });
+      } else {
+        hitObject.material.color.set(0xff0000);
+        setTimeout(() => {
+          hitObject.material.color.set(0xffffff);
+        }, 100);
       }
     }
   }
@@ -523,6 +544,23 @@ const firingRate = 0.1;
 let isFiring = false;
 let firingInterval: ReturnType<typeof setInterval> | null = null;
 
+let isReloading = false;
+
+function reload() {
+  if (!isReloading) {
+    isReloading = true;
+    console.log('Reloading...');
+    audioManager.reloadSound.play();
+
+    setTimeout(() => {
+      bulletCount = 30;
+      updateBulletDisplay();
+      isReloading = false;
+      console.log('Reload complete!');
+    }, 2000);
+  }
+}
+
 document.addEventListener('mousedown', () => {
   if (document.pointerLockElement === document.body && !isFiring) {
     isFiring = true;
@@ -563,6 +601,7 @@ document.addEventListener('mousedown', () => {
         bullets = bullets.filter((l) => l.userData.active === true);
       } else {
         console.log('Out of bullets!');
+        reload();
       }
     }, firingRate * 1000);
   }
