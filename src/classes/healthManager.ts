@@ -36,7 +36,6 @@ export class HealthManager {
 
   private updateHealthDisplay(): void {
     if (this.healthDisplay) {
-      const svgElement = this.healthDisplay.querySelector('svg');
       const textElement = this.healthDisplay.querySelector('span');
 
       if (textElement) {
@@ -52,11 +51,11 @@ export class HealthManager {
     const healthPercentage = (this.playerHealth / this.maxHealth) * 100;
 
     if (healthPercentage > 75) {
-      return '#22c55e';
+      return '#4ade80';
     } else if (healthPercentage > 40) {
-      return '#eab308';
+      return '#facc15';
     } else {
-      return '#ef4444';
+      return '#f87171';
     }
   }
 

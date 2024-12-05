@@ -9,6 +9,7 @@ import { collidableObjects, loadModels } from './utils/loadModels';
 import { loadingManager } from './utils/loadingManager';
 import { initializeScene } from './utils/initScene';
 import { PLAYER } from './config/constants';
+import GenTerrain from './classes/genTerrain';
 // import GenTerrain from './classes/genTerrain';
 
 const { scene, camera, renderer, stats } = initializeScene();
@@ -319,119 +320,6 @@ function updateZombieKillDisplay() {
     killCountElement.textContent = zombieKills.toString();
   }
 }
-
-// function createBullet() {
-//   const bulletGeo = new THREE.IcosahedronGeometry(0.05, 2);
-//   const bulletMat = new THREE.MeshBasicMaterial({
-//     color: 0xff4500,
-//     transparent: true,
-//     fog: false,
-//     blending: THREE.AdditiveBlending,
-//   });
-//   const bullet = new THREE.Mesh(bulletGeo, bulletMat);
-//   bullet.position.copy(camera.position);
-//   bullet.rotation.copy(camera.rotation);
-
-//   let active = true;
-//   let speed = 15;
-
-//   let goalPos = camera.position
-//     .clone()
-//     .setFromMatrixPosition(crosshairs.matrixWorld);
-
-//   const bulletDirection = new THREE.Vector3(0, 0, 0);
-//   bulletDirection
-//     .subVectors(bullet.position, goalPos)
-//     .normalize()
-//     .multiplyScalar(speed);
-
-//   direction.subVectors(goalPos, camera.position);
-//   raycaster.set(camera.position, direction);
-//   let intersects = raycaster.intersectObjects(zombieGroup.children, true);
-
-//   if (intersects.length > 0) {
-//     const hitObject = intersects[0].object as THREE.Mesh;
-//     const zombieHealth = (hitObject as any).health;
-//     impactPos.copy(intersects[0].point);
-//     impactColor.copy(
-//       ((intersects[0].object as THREE.Mesh).material as THREE.MeshBasicMaterial)
-//         .color
-//     );
-
-//     if (zombieHealth !== undefined) {
-//       (hitObject as any).health -= 1;
-
-//       let parentZombie = hitObject;
-//       while (parentZombie.parent && parentZombie.parent !== zombieGroup) {
-//         parentZombie = parentZombie.parent as THREE.Mesh;
-//       }
-
-//       if ((hitObject as any).health <= 0) {
-//         const zombieMixer = (parentZombie as any).mixer as THREE.AnimationMixer;
-//         const deathAction = (parentZombie as any)
-//           .deathAction as THREE.AnimationAction;
-
-//         zombieMixer.stopAllAction();
-//         deathAction.reset();
-//         deathAction.play();
-
-//         zombieKills++;
-
-//         // Update the kill display
-//         updateZombieKillDisplay();
-
-//         setTimeout(() => {
-//           zombieGroup.remove(parentZombie);
-//           parentZombie.traverse((child) => {
-//             if (child instanceof THREE.Mesh) {
-//               child.geometry.dispose();
-//               if (child.material instanceof THREE.Material) {
-//                 child.material.dispose();
-//               }
-//             }
-//           });
-//         }, 2000);
-//       } else {
-//         hitObject.material.color.set(0xff0000);
-//         setTimeout(() => {
-//           hitObject.material.color.set(0xffffff);
-//         }, 100);
-//       }
-//     }
-//   }
-
-//   let scale = 1.0;
-//   let opacity = 1.0;
-//   let isExploding = false;
-
-//   function update() {
-//     if (active === true) {
-//       if (isExploding === false) {
-//         bullet.position.sub(bulletDirection);
-
-//         if (bullet.position.distanceTo(impactPos) < 0.5) {
-//           bullet.position.copy(impactPos);
-//           bullet.material.color.set(impactColor);
-//           isExploding = true;
-//         }
-//       } else {
-//         if (opacity > 0.01) {
-//           scale += 0.2;
-//           opacity *= 0.85;
-//         } else {
-//           opacity = 0.0;
-//           scale = 0.01;
-//           active = false;
-//         }
-//         bullet.scale.setScalar(scale);
-//         bullet.material.opacity = opacity;
-//         bullet.userData.active = active;
-//       }
-//     }
-//   }
-//   bullet.userData = { update, active };
-//   return bullet;
-// }
 
 function createBullet() {
   const bulletGeo = new THREE.IcosahedronGeometry(0.05, 2);
@@ -752,10 +640,10 @@ document.addEventListener('mouseup', () => {
   }
 });
 
-// const terrain = new GenTerrain({ chunkSize: 100, maxChunks: 10 });
-// scene.add(terrain.terrainChunks);
-// // scene.add(terrain.walls);
-// scene.add(terrain.trees);
+const terrain = new GenTerrain({ chunkSize: 100, maxChunks: 10 });
+scene.add(terrain.terrainChunks);
+// scene.add(terrain.walls);
+scene.add(terrain.trees);
 
 const pauseMenu = document.getElementById('pause-menu');
 const resumeButton = document.getElementById('resume-button');
@@ -788,7 +676,7 @@ function animate() {
     updatePlayer(deltaTime);
     updateFlashlightPosition();
     spawnZombies();
-    // terrain.update(camera.position);
+    terrain.update(camera.position);
 
     if (
       !keyStates['KeyW'] &&
