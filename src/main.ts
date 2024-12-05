@@ -25,7 +25,7 @@ const audioLoader = new THREE.AudioLoader();
 audioLoader.load('/audio/bg_music2.mp3', function (buffer) {
   backgroundMusic.setBuffer(buffer);
   backgroundMusic.setLoop(true);
-  backgroundMusic.setVolume(0.5);
+  backgroundMusic.setVolume(0.3);
   backgroundMusic.play();
 });
 
@@ -49,33 +49,63 @@ const zombieGroup = new THREE.Group();
 const zombieMixers: THREE.AnimationMixer[] = [];
 scene.add(zombieGroup);
 
-const numZombies = 5;
-for (let i = 0; i < numZombies; i++) {
-  zombieLoader.load('/Low Poly Zombie Game Animation/scene.gltf', (gltf) => {
-    const zombie = gltf.scene;
-    zombie.scale.set(0.25, 0.25, 0.25);
-    zombie.position.set(
-      (Math.random() - 0.5) * 100,
-      0,
-      (Math.random() - 0.5) * 100
+let lastZombieSpawnPosition = new THREE.Vector3();
+const spawnDistanceThreshold = 50;
+
+function spawnZombies() {
+  const distanceToLastSpawn = camera.position.distanceTo(
+    lastZombieSpawnPosition
+  );
+
+  if (distanceToLastSpawn > spawnDistanceThreshold) {
+    const numNewZombies = 2;
+
+    for (let i = 0; i < numNewZombies; i++) {
+      zombieLoader.load(
+        '/Low Poly Zombie Game Animation/scene.gltf',
+        (gltf) => {
+          const zombie = gltf.scene;
+          zombie.scale.set(0.25, 0.25, 0.25);
+          zombie.position.set(
+            (Math.random() - 0.5) * 100 + camera.position.x,
+            0,
+            (Math.random() - 0.5) * 100 + camera.position.z
+          );
+
+          zombie.traverse((node) => {
+            if ((node as THREE.Mesh).isMesh) {
+              node.castShadow = true;
+              (node as any).health = Math.floor(Math.random() * 5) + 5;
+            }
+          });
+
+          zombieGroup.add(zombie);
+
+          console.log(
+            'Available animations:',
+            gltf.animations.map((a) => a.name)
+          );
+
+          const zombieMixer = new THREE.AnimationMixer(zombie);
+          zombieMixers.push(zombieMixer);
+
+          const walkAction = zombieMixer.clipAction(gltf.animations[1]);
+          walkAction.setEffectiveTimeScale(4);
+          walkAction.play();
+
+          const deathAction = zombieMixer.clipAction(gltf.animations[3]);
+          (zombie as any).deathAction = deathAction;
+          (zombie as any).mixer = zombieMixer;
+        }
+      );
+    }
+
+    lastZombieSpawnPosition.set(
+      camera.position.x,
+      camera.position.y,
+      camera.position.z
     );
-
-    zombie.traverse((node) => {
-      if ((node as THREE.Mesh).isMesh) {
-        node.castShadow = true;
-        (node as any).health = Math.floor(Math.random() * 5) + 5;
-      }
-    });
-
-    zombieGroup.add(zombie);
-
-    const zombieMixer = new THREE.AnimationMixer(zombie);
-    zombieMixers.push(zombieMixer);
-
-    const clip = gltf.animations[1];
-    const action = zombieMixer.clipAction(clip);
-    action.play();
-  });
+  }
 }
 
 const playerHealthManager = new HealthManager(100, 100);
@@ -327,15 +357,25 @@ function createBullet() {
       }
 
       if ((hitObject as any).health <= 0) {
-        zombieGroup.remove(parentZombie);
-        parentZombie.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            child.geometry.dispose();
-            if (child.material instanceof THREE.Material) {
-              child.material.dispose();
+        const zombieMixer = (parentZombie as any).mixer as THREE.AnimationMixer;
+        const deathAction = (parentZombie as any)
+          .deathAction as THREE.AnimationAction;
+
+        zombieMixer.stopAllAction();
+        deathAction.reset();
+        deathAction.play();
+
+        setTimeout(() => {
+          zombieGroup.remove(parentZombie);
+          parentZombie.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              child.geometry.dispose();
+              if (child.material instanceof THREE.Material) {
+                child.material.dispose();
+              }
             }
-          }
-        });
+          });
+        }, 2000);
       } else {
         hitObject.material.color.set(0xff0000);
         setTimeout(() => {
@@ -433,51 +473,9 @@ let maxRecoil = 0.3;
 let currentRecoil = 0;
 let recoilDirection = 0;
 
-addEventListener('click', () => {
-  if (document.pointerLockElement === document.body) {
-    if (bulletCount > 0) {
-      if (audioManager.gunshotSound.isPlaying) {
-        audioManager.gunshotSound.stop();
-      }
-      audioManager.gunshotSound.play();
-
-      audioManager.shellSound.play();
-
-      const bullet = createBullet();
-      bullets.push(bullet);
-      scene.add(bullet);
-
-      const flashMesh = createMuzzleFlash();
-      scene.add(flashMesh);
-
-      setTimeout(() => {
-        scene.remove(flashMesh);
-      }, 100);
-
-      bulletCount--;
-      updateBulletDisplay();
-
-      currentRecoil = maxRecoil;
-      recoilDirection = Math.random() > 0.5 ? 1 : -1;
-
-      let inactivebullets = bullets.filter((l) => l.userData.active === false);
-      scene.remove(...inactivebullets);
-      bullets = bullets.filter((l) => l.userData.active === true);
-    } else {
-      console.log('Out of bullets!');
-    }
-  }
-});
-
 document.addEventListener('keydown', (event) => {
   if (event.code === 'KeyR') {
-    audioManager.reloadSound.play();
-
-    setTimeout(() => {
-      bulletCount = 30;
-      updateBulletDisplay();
-      console.log('Reloaded!');
-    }, 2000);
+    handleReload();
   }
 });
 
@@ -546,64 +544,69 @@ let firingInterval: ReturnType<typeof setInterval> | null = null;
 
 let isReloading = false;
 
-function reload() {
+function handleReload() {
   if (!isReloading) {
     isReloading = true;
-    console.log('Reloading...');
     audioManager.reloadSound.play();
 
     setTimeout(() => {
       bulletCount = 30;
       updateBulletDisplay();
       isReloading = false;
-      console.log('Reload complete!');
     }, 2000);
   }
 }
 
+function reload() {
+  handleReload();
+}
+
+function fireBullet() {
+  if (bulletCount > 0) {
+    if (audioManager.gunshotSound.isPlaying) {
+      audioManager.gunshotSound.stop();
+    }
+    audioManager.gunshotSound.play();
+
+    audioManager.shellSound.play();
+
+    const bullet = createBullet();
+    bullets.push(bullet);
+    scene.add(bullet);
+
+    const flashMesh = createMuzzleFlash();
+    scene.add(flashMesh);
+
+    setTimeout(() => {
+      flashMesh.material.opacity = 0;
+    }, 50);
+    setTimeout(() => {
+      scene.remove(flashMesh);
+    }, 100);
+
+    bulletCount--;
+    updateBulletDisplay();
+    currentRecoil = maxRecoil;
+    recoilDirection = Math.random() > 0.5 ? 1 : -1;
+
+    const inactiveBullets = bullets.filter((bullet) => !bullet.userData.active);
+    scene.remove(...inactiveBullets);
+    bullets = bullets.filter((bullet) => bullet.userData.active);
+  } else {
+    reload();
+  }
+}
+
+addEventListener('click', () => {
+  if (document.pointerLockElement === document.body && !isFiring) {
+    fireBullet();
+  }
+});
+
 document.addEventListener('mousedown', () => {
   if (document.pointerLockElement === document.body && !isFiring) {
     isFiring = true;
-    firingInterval = setInterval(() => {
-      if (bulletCount > 0) {
-        if (audioManager.gunshotSound.isPlaying) {
-          audioManager.gunshotSound.stop();
-        }
-        audioManager.gunshotSound.play();
-
-        audioManager.shellSound.play();
-
-        const bullet = createBullet();
-        bullets.push(bullet);
-        scene.add(bullet);
-
-        const flashMesh = createMuzzleFlash();
-        scene.add(flashMesh);
-
-        setTimeout(() => {
-          flashMesh.material.opacity = 0;
-        }, 50);
-
-        setTimeout(() => {
-          scene.remove(flashMesh);
-        }, 100);
-
-        bulletCount--;
-        updateBulletDisplay();
-
-        currentRecoil = maxRecoil;
-        recoilDirection = Math.random() > 0.5 ? 1 : -1;
-
-        let inactivebullets = bullets.filter(
-          (l) => l.userData.active === false
-        );
-        scene.remove(...inactivebullets);
-        bullets = bullets.filter((l) => l.userData.active === true);
-      } else {
-        console.log('Out of bullets!');
-        reload();
-      }
-    }, firingRate * 1000);
+    firingInterval = setInterval(fireBullet, firingRate * 1000);
   }
 });
 
@@ -650,6 +653,7 @@ function animate() {
     controls(deltaTime);
     updatePlayer(deltaTime);
     updateFlashlightPosition();
+    spawnZombies();
     // terrain.update(camera.position);
 
     if (
@@ -683,7 +687,7 @@ function animate() {
       gunBobbingTime = 0;
     }
 
-    const zombieSpeed = 2;
+    const zombieSpeed = 4;
     const separationRadius = 2.0;
     const separationStrength = 100.0;
     const groundLevel = 0;

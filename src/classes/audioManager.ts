@@ -20,7 +20,7 @@ export class AudioManager {
     this.gunshotSound = this.loadSound('/audio/weapon/fire.mp3', 0.5, false);
     this.shellSound = this.loadSound(
       '/audio/weapon/bulletshells04.mp3',
-      0.1,
+      0.3,
       false
     );
     this.reloadSound = this.loadSound('/audio/weapon/reload.mp3', 0.5, false);
