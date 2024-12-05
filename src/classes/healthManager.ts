@@ -16,6 +16,7 @@ export class HealthManager {
     if (!this.healthDecreaseInterval) {
       this.healthDecreaseInterval = setInterval(() => {
         if (this.playerHealth > 0) {
+          triggerBloodEffect();
           this.playerHealth -= decayAmount;
           this.updateHealthDisplay();
         } else {
@@ -37,13 +38,45 @@ export class HealthManager {
     if (this.healthDisplay) {
       const svgElement = this.healthDisplay.querySelector('svg');
       const textElement = this.healthDisplay.querySelector('span');
-      if (svgElement && textElement) {
+
+      if (textElement) {
         textElement.textContent = `${this.playerHealth} / ${this.maxHealth}`;
       }
+
+      const healthColor = this.getHealthColor();
+      this.healthDisplay.style.color = healthColor;
+    }
+  }
+
+  private getHealthColor(): string {
+    const healthPercentage = (this.playerHealth / this.maxHealth) * 100;
+
+    if (healthPercentage > 75) {
+      return '#22c55e';
+    } else if (healthPercentage > 40) {
+      return '#eab308';
+    } else {
+      return '#ef4444';
     }
   }
 
   isPlayerAlive(): boolean {
     return this.playerHealth > 0;
+  }
+}
+
+function triggerBloodEffect() {
+  const bloodOverlay = document.getElementById('blood-overlay');
+
+  if (bloodOverlay) {
+    bloodOverlay.style.display = 'block';
+    bloodOverlay.style.opacity = '1';
+
+    setTimeout(() => {
+      bloodOverlay.style.opacity = '0';
+      setTimeout(() => {
+        bloodOverlay.style.display = 'none';
+      }, 300);
+    }, 200);
   }
 }

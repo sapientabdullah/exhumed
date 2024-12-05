@@ -8,6 +8,7 @@ import { Capsule } from 'three/examples/jsm/Addons.js';
 import { collidableObjects, loadModels } from './utils/loadModels';
 import { loadingManager } from './utils/loadingManager';
 import { initializeScene } from './utils/initScene';
+import { PLAYER } from './config/constants';
 // import GenTerrain from './classes/genTerrain';
 
 const { scene, camera, renderer, stats } = initializeScene();
@@ -15,7 +16,7 @@ const { scene, camera, renderer, stats } = initializeScene();
 export { camera };
 
 const audioManager = new AudioManager(camera, loadingManager);
-21;
+
 const listener = new THREE.AudioListener();
 camera.add(listener);
 
@@ -58,7 +59,7 @@ function spawnZombies() {
   );
 
   if (distanceToLastSpawn > spawnDistanceThreshold) {
-    const numNewZombies = 2;
+    const numNewZombies = 5;
 
     for (let i = 0; i < numNewZombies; i++) {
       zombieLoader.load(
@@ -135,16 +136,16 @@ function checkPlayerZombieCollision() {
 }
 
 const playerCollider = new Capsule(
-  new THREE.Vector3(0, 5, 0),
-  new THREE.Vector3(0, 5, 0),
-  0.35
+  new THREE.Vector3(0, PLAYER.COLLIDER_HEIGHT, 0),
+  new THREE.Vector3(0, PLAYER.COLLIDER_HEIGHT, 0),
+  PLAYER.COLLIDER_RADIUS
 );
 
 const playerVelocity = new THREE.Vector3();
 const playerDirection = new THREE.Vector3();
 let playerOnFloor = false;
 
-const GRAVITY = 30;
+const GRAVITY = PLAYER.GRAVITY;
 const keyStates: { [key: string]: boolean } = {};
 document.addEventListener('keydown', (event) => (keyStates[event.code] = true));
 document.addEventListener('keyup', (event) => (keyStates[event.code] = false));
@@ -196,7 +197,7 @@ function controls(deltaTime: number) {
     moving = true;
   }
   if (playerOnFloor && keyStates['Space']) {
-    playerVelocity.y = 15;
+    playerVelocity.y = PLAYER.JUMP_VELOCITY;
 
     if (audioManager.jumpSound.isPlaying) {
       audioManager.jumpSound.stop();
@@ -690,7 +691,7 @@ function animate() {
     const zombieSpeed = 4;
     const separationRadius = 2.0;
     const separationStrength = 100.0;
-    const groundLevel = 0;
+    const groundLevel = 5;
 
     zombieGroup.children.forEach((zombie, index) => {
       const directionToPlayer = new THREE.Vector3();
