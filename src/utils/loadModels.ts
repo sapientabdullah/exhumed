@@ -130,17 +130,14 @@ export function loadModels(
 
   loader.load('/Zombie Hospital GLTF/scene.gltf', (gltf) => {
     const hospital = gltf.scene;
-    hospital.scale.set(5, 5, 5); 
-    hospital.position.set(0, -1.5, -30);
-    hospital.rotation.set(0, Math.PI, 0);
+    hospital.scale.set(3, 3, 3);
+    hospital.position.set(0, 0, -200);
+    hospital.rotation.set(0, Math.PI * 2, 0);
     hospital.traverse((node) => {
       if ((node as THREE.Mesh).isMesh) {
         node.castShadow = true;
       }
     });
     scene.add(hospital);
-
-    const box = new THREE.Box3().setFromObject(hospital);
-    collidableObjects.push({ mesh: hospital, box });
   });
 }

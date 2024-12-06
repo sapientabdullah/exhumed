@@ -59,7 +59,7 @@ function spawnZombies() {
   );
 
   if (distanceToLastSpawn > spawnDistanceThreshold) {
-    const numNewZombies = 5;
+    const numNewZombies = 2;
 
     for (let i = 0; i < numNewZombies; i++) {
       zombieLoader.load(
@@ -353,6 +353,15 @@ function createBullet() {
     const hitObject = intersects[0].object as THREE.Mesh;
     const zombieHealth = (hitObject as any).health;
 
+    const impactPosition = intersects[0].point;
+    const impactNormal = intersects[0].face?.normal
+      .clone()
+      .applyMatrix3(new THREE.Matrix3().getNormalMatrix(hitObject.matrixWorld));
+
+    if (impactNormal) {
+      createBloodSplatter(impactPosition, impactNormal);
+    }
+
     if (!hitObject.userData.isDead && zombieHealth !== undefined) {
       impactPos.copy(intersects[0].point);
       impactColor.copy(
@@ -441,6 +450,44 @@ function getZombieParent(hitObject: THREE.Object3D): THREE.Mesh {
 
 const textureLoader = new THREE.TextureLoader(loadingManager);
 const muzzleFlashTexture = textureLoader.load('/Fireball Illustration PNG.png');
+
+const bloodSplatterTexture = textureLoader.load(
+  '/Blood Splatter Red Illustration.png'
+);
+
+function createBloodSplatter(
+  impactPosition: THREE.Vector3,
+  impactNormal: THREE.Vector3
+) {
+  const splatterSize = Math.random() * 1.5 + 1.5;
+  const splatterGeometry = new THREE.PlaneGeometry(splatterSize, splatterSize);
+  const splatterMaterial = new THREE.MeshBasicMaterial({
+    map: bloodSplatterTexture,
+    transparent: true,
+    depthWrite: false,
+  });
+
+  const splatter = new THREE.Mesh(splatterGeometry, splatterMaterial);
+
+  splatter.position.copy(impactPosition);
+
+  const quaternion = new THREE.Quaternion();
+  quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), impactNormal);
+  splatter.quaternion.copy(quaternion);
+
+  scene.add(splatter);
+
+  const fadeDuration = 1;
+  const fadeInterval = setInterval(() => {
+    splatterMaterial.opacity -= 0.1;
+    if (splatterMaterial.opacity <= 0) {
+      clearInterval(fadeInterval);
+      scene.remove(splatter);
+      splatter.geometry.dispose();
+      splatter.material.dispose();
+    }
+  }, (fadeDuration * 1000) / 20);
+}
 
 function createMuzzleFlash() {
   const flashGeometry = new THREE.PlaneGeometry(5, 5);
