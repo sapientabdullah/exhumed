@@ -293,7 +293,7 @@ function resolveCollision(playerBox: THREE.Box3, objectBox: THREE.Box3) {
 
 function teleportPlayer() {
   const mapEndX = 0;
-  const mapEndZ = 46;
+  const mapEndZ = 60;
 
   const playerHeight = 5;
 
