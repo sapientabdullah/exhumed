@@ -8,9 +8,30 @@
   <title>FPS Game</title>
   <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.0.24/dist/tailwind.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/keyboard-css@1.2.4/dist/css/main.min.css" />
 </head>
 
 <body class="bg-gray-900">
+
+  <div id="controls" class="btns fixed top-6 left-1/2 transform -translate-x-1/2 mt-8 text-center hidden text-white">
+    <p>Move</p>
+    <div class="w mb-4">
+      <kbd class="kbc-button">W</kbd>
+    </div>
+    <div class="flex gap-4 mb-4 justify-center">
+      <kbd class="kbc-button">A</kbd>
+      <kbd class="kbc-button">S</kbd>
+      <kbd class="kbc-button">D</kbd>
+    </div>
+    <p>Shoot</p>
+    <kbd class="kbc-button mb-4">Left Mouse Click</kbd>
+    <div class="flex gap-4 justify-center">
+      <p>Reload</p>
+      <kbd class="kbc-button mb-4">R</kbd>
+      <p>Pause</p>
+      <kbd class="kbc-button mb-4">R</kbd>
+    </div>
+  </div>
 
   <div id="app"></div>
   <div id="loading-screen">
@@ -39,6 +60,12 @@
     <span></span>
   </div>
 
+  <div id="zombie-kill-display"
+    class="flex items-center justify-center gap-2 text-3xl text-white font-bold absolute top-4 left-1/2 -translate-x-1/2">
+    <i class="fas fa-skull text-[22px]"></i>
+    <span id="kill-count" class="text-shadow">0</span>
+  </div>
+
   <div id="pause-menu" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden">
     <div class="bg-black text-white bg-opacity-40 shadow-lg rounded-lg p-8 w-3/4 max-w-md">
       <h2 class="text-2xl font-bold mb-4 text-center">Paused</h2>
@@ -46,12 +73,6 @@
         Resume
       </button>
     </div>
-  </div>
-
-  <div id="zombie-kill-display"
-    class=" flex items-center justify-center gap-2 text-3xl text-white font-bold absolute top-4 left-1/2">
-    <i class="fas fa-skull text-[22px]"></i>
-    <span id="kill-count" class="text-shadow">0</span>
   </div>
 
   <div id="blood-overlay"></div>

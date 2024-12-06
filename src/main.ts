@@ -9,7 +9,6 @@ import { collidableObjects, loadModels } from './utils/loadModels';
 import { loadingManager } from './utils/loadingManager';
 import { initializeScene } from './utils/initScene';
 import { PLAYER } from './config/constants';
-import GenTerrain from './classes/genTerrain';
 // import GenTerrain from './classes/genTerrain';
 
 const { scene, camera, renderer, stats } = initializeScene();
@@ -640,10 +639,10 @@ document.addEventListener('mouseup', () => {
   }
 });
 
-const terrain = new GenTerrain({ chunkSize: 100, maxChunks: 10 });
-scene.add(terrain.terrainChunks);
-// scene.add(terrain.walls);
-scene.add(terrain.trees);
+// const terrain = new GenTerrain({ chunkSize: 100, maxChunks: 10 });
+// scene.add(terrain.terrainChunks);
+// // scene.add(terrain.walls);
+// scene.add(terrain.trees);
 
 const pauseMenu = document.getElementById('pause-menu');
 const resumeButton = document.getElementById('resume-button');
@@ -669,6 +668,22 @@ resumeButton!.addEventListener('click', () => {
   clock.getDelta();
 });
 
+let controlsVisible = true;
+
+function toggleControlsVisibility() {
+  const controlsElement = document.getElementById('controls');
+  if (controlsElement) {
+    controlsVisible = !controlsVisible;
+    controlsElement.style.display = controlsVisible ? 'block' : 'none';
+  }
+}
+
+document.addEventListener('keydown', (event) => {
+  if (event.code === 'KeyC') {
+    toggleControlsVisibility();
+  }
+});
+
 function animate() {
   if (!paused) {
     const deltaTime = clock.getDelta();
@@ -676,7 +691,7 @@ function animate() {
     updatePlayer(deltaTime);
     updateFlashlightPosition();
     spawnZombies();
-    terrain.update(camera.position);
+    // terrain.update(camera.position);
 
     if (
       !keyStates['KeyW'] &&
@@ -712,7 +727,7 @@ function animate() {
     const zombieSpeed = 4;
     const separationRadius = 2.0;
     const separationStrength = 100.0;
-    const groundLevel = 5;
+    const groundLevel = 0;
 
     zombieGroup.children.forEach((zombie, index) => {
       const directionToPlayer = new THREE.Vector3();

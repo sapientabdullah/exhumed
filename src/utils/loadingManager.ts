@@ -17,6 +17,13 @@ loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
 loadingManager.onLoad = () => {
   console.log('All resources loaded!');
   document.getElementById('loading-screen')?.remove();
+
+  setTimeout(() => {
+    const interfaceElement = document.getElementById('controls');
+    if (interfaceElement) {
+      interfaceElement.classList.remove('hidden');
+    }
+  }, 1000);
 };
 
 loadingManager.onError = (url) => {

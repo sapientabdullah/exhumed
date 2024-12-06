@@ -51,7 +51,7 @@ export class HealthManager {
     const healthPercentage = (this.playerHealth / this.maxHealth) * 100;
 
     if (healthPercentage > 75) {
-      return '#4ade80';
+      return 'white';
     } else if (healthPercentage > 40) {
       return '#facc15';
     } else {

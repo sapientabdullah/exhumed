@@ -58,3 +58,17 @@ body {
   opacity: 0;
   transition: opacity 0.3s ease-out;
 }
+
+@keyframes disappear {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+#controls {
+  animation: disappear 4s linear 1 forwards;
+}
