@@ -11,6 +11,8 @@ import { initializeScene } from './utils/initScene';
 import { PLAYER } from './config/constants';
 import { addEventListeners } from './utils/eventListeners';
 import { spawnZombies, zombieGroup, zombieMixers } from './utils/zombieSpawner';
+import { createMuzzleFlash } from './utils/createMuzzleFlash';
+import { createBloodSplatter } from './utils/createBloodSplatter';
 // import GenTerrain from './classes/genTerrain';
 
 addEventListeners();
@@ -301,7 +303,7 @@ function createBullet() {
       .applyMatrix3(new THREE.Matrix3().getNormalMatrix(hitObject.matrixWorld));
 
     if (impactNormal) {
-      createBloodSplatter(impactPosition, impactNormal);
+      createBloodSplatter(impactPosition, impactNormal, scene);
     }
 
     if (!hitObject.userData.isDead && zombieHealth !== undefined) {
@@ -388,73 +390,6 @@ function getZombieParent(hitObject: THREE.Object3D): THREE.Mesh {
     parentZombie = parentZombie.parent as THREE.Mesh;
   }
   return parentZombie as THREE.Mesh;
-}
-
-const textureLoader = new THREE.TextureLoader(loadingManager);
-const muzzleFlashTexture = textureLoader.load('/muzzle-flash.png');
-
-const bloodSplatterTexture = textureLoader.load('/blood-splatter.png');
-
-function createBloodSplatter(
-  impactPosition: THREE.Vector3,
-  impactNormal: THREE.Vector3
-) {
-  const splatterSize = Math.random() * 1.5 + 1.5;
-  const splatterGeometry = new THREE.PlaneGeometry(splatterSize, splatterSize);
-  const splatterMaterial = new THREE.MeshBasicMaterial({
-    map: bloodSplatterTexture,
-    transparent: true,
-    depthWrite: false,
-  });
-
-  const splatter = new THREE.Mesh(splatterGeometry, splatterMaterial);
-
-  splatter.position.copy(impactPosition);
-
-  const quaternion = new THREE.Quaternion();
-  quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), impactNormal);
-  splatter.quaternion.copy(quaternion);
-
-  scene.add(splatter);
-
-  const fadeDuration = 1;
-  const fadeInterval = setInterval(() => {
-    splatterMaterial.opacity -= 0.1;
-    if (splatterMaterial.opacity <= 0) {
-      clearInterval(fadeInterval);
-      scene.remove(splatter);
-      splatter.geometry.dispose();
-      splatter.material.dispose();
-    }
-  }, (fadeDuration * 1000) / 20);
-}
-
-function createMuzzleFlash() {
-  const flashGeometry = new THREE.PlaneGeometry(5, 5);
-
-  const flashMaterial = new THREE.MeshBasicMaterial({
-    map: muzzleFlashTexture,
-    transparent: true,
-    opacity: 1.0,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-    blending: THREE.AdditiveBlending,
-  });
-
-  const flashMesh = new THREE.Mesh(flashGeometry, flashMaterial);
-
-  if (gun) {
-    const offset = new THREE.Vector3(0, 0, -3);
-    flashMesh.position
-      .copy(gun.getWorldPosition(new THREE.Vector3()))
-      .add(offset);
-    flashMesh.rotation.copy(gun.rotation);
-  }
-
-  flashMesh.scale.set(1 + Math.random() * 0.5, 1 + Math.random() * 0.5, 1);
-  flashMesh.rotation.z = Math.random() * Math.PI * 2;
-
-  return flashMesh;
 }
 
 let mousePosition = new THREE.Vector2();
@@ -548,7 +483,7 @@ function fireBullet() {
     bullets.push(bullet);
     scene.add(bullet);
 
-    const flashMesh = createMuzzleFlash();
+    const flashMesh = createMuzzleFlash(gun);
     scene.add(flashMesh);
 
     setTimeout(() => {
