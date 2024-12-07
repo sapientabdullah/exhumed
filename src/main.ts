@@ -9,7 +9,10 @@ import { collidableObjects, loadModels } from './utils/loadModels';
 import { loadingManager } from './utils/loadingManager';
 import { initializeScene } from './utils/initScene';
 import { PLAYER } from './config/constants';
+import { addEventListeners } from './utils/eventListeners';
 // import GenTerrain from './classes/genTerrain';
+
+addEventListeners();
 
 const { scene, camera, renderer, stats } = initializeScene();
 
@@ -144,7 +147,7 @@ const playerDirection = new THREE.Vector3();
 let playerOnFloor = false;
 
 const GRAVITY = PLAYER.GRAVITY;
-const keyStates: { [key: string]: boolean } = {};
+export const keyStates: { [key: string]: boolean } = {};
 document.addEventListener('keydown', (event) => (keyStates[event.code] = true));
 document.addEventListener('keyup', (event) => (keyStates[event.code] = false));
 
@@ -537,37 +540,6 @@ let maxRecoil = 0.3;
 let currentRecoil = 0;
 let recoilDirection = 0;
 
-document.addEventListener('keydown', (event) => {
-  if (event.code === 'KeyR') {
-    handleReload();
-  }
-});
-
-document.body.addEventListener('mousemove', (event) => {
-  if (document.pointerLockElement === document.body) {
-    camera.rotation.y -= event.movementX / 500;
-    camera.rotation.x -= event.movementY / 500;
-    camera.rotation.x = Math.max(
-      -Math.PI / 2,
-      Math.min(Math.PI / 2, camera.rotation.x)
-    );
-  }
-});
-
-document.addEventListener('click', () => {
-  if (document.pointerLockElement !== document.body) {
-    document.body.requestPointerLock();
-  }
-});
-document.addEventListener('keydown', (event) => {
-  if (
-    event.code === 'Escape' &&
-    document.pointerLockElement === document.body
-  ) {
-    document.exitPointerLock();
-  }
-});
-
 const flashlight = new THREE.SpotLight(0xffffff, 2, 50, Math.PI / 4, 0.8, 1);
 flashlight.position.set(0.9, -0.9, -1.2);
 flashlight.target = new THREE.Object3D();
@@ -604,11 +576,12 @@ let gunBobbingTime = 0;
 const firingRate = 0.1;
 
 let isFiring = false;
+
 let firingInterval: ReturnType<typeof setInterval> | null = null;
 
 let isReloading = false;
 
-function handleReload() {
+export function handleReload() {
   if (!isReloading) {
     isReloading = true;
     audioManager.reloadSound.play();
