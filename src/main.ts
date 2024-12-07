@@ -62,43 +62,41 @@ function spawnZombies() {
     const numNewZombies = 2;
 
     for (let i = 0; i < numNewZombies; i++) {
-      zombieLoader.load(
-        '/Low Poly Zombie Game Animation/scene.gltf',
-        (gltf) => {
-          const zombie = gltf.scene;
-          zombie.scale.set(0.25, 0.25, 0.25);
-          zombie.position.set(
-            (Math.random() - 0.5) * 100 + camera.position.x,
-            0,
-            (Math.random() - 0.5) * 100 + camera.position.z
-          );
+      zombieLoader.load('/zombie/scene.gltf', (gltf) => {
+        const zombie = gltf.scene;
+        zombie.scale.set(0.25, 0.25, 0.25);
+        zombie.position.set(
+          (Math.random() - 0.5) * 100 + camera.position.x,
+          0,
+          (Math.random() - 0.5) * 100 + camera.position.z
+        );
 
-          zombie.traverse((node) => {
-            if ((node as THREE.Mesh).isMesh) {
-              node.castShadow = true;
-              (node as any).health = Math.floor(Math.random() * 5) + 5;
-            }
-          });
+        zombie.traverse((node) => {
+          if ((node as THREE.Mesh).isMesh) {
+            node.castShadow = true;
+            (node as any).health = Math.floor(Math.random() * 5) + 5;
+          }
+        });
 
-          zombieGroup.add(zombie);
+        zombieGroup.add(zombie);
 
-          console.log(
-            'Available animations:',
-            gltf.animations.map((a) => a.name)
-          );
+        const zombieMixer = new THREE.AnimationMixer(zombie);
+        zombieMixers.push(zombieMixer);
 
-          const zombieMixer = new THREE.AnimationMixer(zombie);
-          zombieMixers.push(zombieMixer);
+        const walkAction = zombieMixer.clipAction(gltf.animations[1]);
+        walkAction.setEffectiveTimeScale(4);
+        walkAction.play();
 
-          const walkAction = zombieMixer.clipAction(gltf.animations[1]);
-          walkAction.setEffectiveTimeScale(4);
-          walkAction.play();
+        const attackAction = zombieMixer.clipAction(gltf.animations[2]);
+        attackAction.setLoop(THREE.LoopRepeat, Infinity);
 
-          const deathAction = zombieMixer.clipAction(gltf.animations[3]);
-          (zombie as any).deathAction = deathAction;
-          (zombie as any).mixer = zombieMixer;
-        }
-      );
+        const deathAction = zombieMixer.clipAction(gltf.animations[3]);
+
+        (zombie as any).deathAction = deathAction;
+        (zombie as any).walkAction = walkAction;
+        (zombie as any).attackAction = attackAction;
+        (zombie as any).mixer = zombieMixer;
+      });
     }
 
     lastZombieSpawnPosition.set(
@@ -449,11 +447,9 @@ function getZombieParent(hitObject: THREE.Object3D): THREE.Mesh {
 }
 
 const textureLoader = new THREE.TextureLoader(loadingManager);
-const muzzleFlashTexture = textureLoader.load('/Fireball Illustration PNG.png');
+const muzzleFlashTexture = textureLoader.load('/muzzle-flash.png');
 
-const bloodSplatterTexture = textureLoader.load(
-  '/Blood Splatter Red Illustration.png'
-);
+const bloodSplatterTexture = textureLoader.load('/blood-splatter.png');
 
 function createBloodSplatter(
   impactPosition: THREE.Vector3,
@@ -774,7 +770,7 @@ function animate() {
     const zombieSpeed = 4;
     const separationRadius = 2.0;
     const separationStrength = 100.0;
-    const groundLevel = 0;
+    const groundLevel = 5;
 
     zombieGroup.children.forEach((zombie, index) => {
       const directionToPlayer = new THREE.Vector3();

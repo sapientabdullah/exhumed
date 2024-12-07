@@ -3,15 +3,18 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FPS Game</title>
+  <meta name="description" content="Exhumed">
+  <title>Exhumed</title>
   <script src="https://cdn.jsdelivr.net/npm/tailwindcss@3.0.24/dist/tailwind.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/keyboard-css@1.2.4/dist/css/main.min.css" />
 </head>
 
 <body class="bg-gray-900">
+
+  <div id="app"></div>
 
   <div id="controls" class="btns fixed top-6 left-1/2 transform -translate-x-1/2 mt-8 text-center hidden text-white">
     <p>Move</p>
@@ -25,18 +28,23 @@
     </div>
     <p>Shoot</p>
     <kbd class="kbc-button mb-4">Left Mouse Click</kbd>
-    <div class="flex gap-4 justify-center">
+    <div class="flex gap-4 justify-center items-center">
       <p>Reload</p>
       <kbd class="kbc-button mb-4">R</kbd>
       <p>Pause</p>
       <kbd class="kbc-button mb-4">R</kbd>
+      <p>Controls</p>
+      <kbd class="kbc-button mb-4">C</kbd>
     </div>
   </div>
 
-  <div id="app"></div>
-  <div id="loading-screen">
-    <div id="progress-bar-container">
-      <div id="progress-bar"></div>
+  <div id="loading-screen" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+    <div class="text-center text-white">
+      <img class="animate-pulse" src="/exhumed-logo.png" alt="Exhumed logo" />
+      <p class="mb-6 text-lg">The undead are waiting...</p>
+      <div id="progress-bar-container" class="w-full h-6 bg-gray-600 rounded-sm relative overflow-hidden">
+        <div id="progress-bar" class="h-full bg-white animate-pulse absolute left-0 top-0"></div>
+      </div>
     </div>
   </div>
 

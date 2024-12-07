@@ -128,9 +128,9 @@ export function loadModels(
     collidableObjects.push({ mesh: barrier, box });
   });
 
-  loader.load('/Zombie Hospital GLTF/scene.gltf', (gltf) => {
+  loader.load('/zombie-hospital/scene.gltf', (gltf) => {
     const hospital = gltf.scene;
-    hospital.scale.set(3, 3, 3);
+    hospital.scale.set(2.5, 2.5, 2.5);
     hospital.position.set(0, 0, -200);
     hospital.rotation.set(0, Math.PI * 2, 0);
     hospital.traverse((node) => {
