@@ -1,5 +1,7 @@
 import { camera, handleReload } from '../main';
 
+let controlsVisible = true;
+
 function handleReloadKey(event: KeyboardEvent) {
   if (event.code === 'KeyR') {
     handleReload();
@@ -15,7 +17,17 @@ function handleEscapeKey(event: KeyboardEvent) {
   }
 }
 
-export function handleMouseMove(event: MouseEvent) {
+function handleControlsKey(event: KeyboardEvent) {
+  if (event.code === 'KeyC') {
+    const controlsElement = document.getElementById('controls');
+    if (controlsElement) {
+      controlsVisible = !controlsVisible;
+      controlsElement.style.display = controlsVisible ? 'block' : 'none';
+    }
+  }
+}
+
+function handleMouseMove(event: MouseEvent) {
   if (document.pointerLockElement === document.body) {
     camera.rotation.y -= event.movementX / 500;
     camera.rotation.x -= event.movementY / 500;
@@ -26,15 +38,16 @@ export function handleMouseMove(event: MouseEvent) {
   }
 }
 
-export function handleMouseClick() {
+function handleMouseClick() {
   if (document.pointerLockElement !== document.body) {
     document.body.requestPointerLock();
   }
 }
 
 export function addEventListeners() {
-  document.addEventListener('mousemove', handleMouseMove);
   document.addEventListener('click', handleMouseClick);
+  document.addEventListener('mousemove', handleMouseMove);
   document.addEventListener('keydown', handleReloadKey);
   document.addEventListener('keydown', handleEscapeKey);
+  document.addEventListener('keydown', handleControlsKey);
 }
