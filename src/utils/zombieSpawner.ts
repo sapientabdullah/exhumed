@@ -14,7 +14,7 @@ function spawnZombies(camera: THREE.Camera) {
   );
 
   if (distanceToLastSpawn > spawnDistanceThreshold) {
-    const numNewZombies = 2;
+    const numNewZombies = 3;
 
     for (let i = 0; i < numNewZombies; i++) {
       zombieLoader.load('/zombie/scene.gltf', (gltf) => {

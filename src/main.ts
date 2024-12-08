@@ -13,7 +13,7 @@ import { addEventListeners } from './utils/eventListeners';
 import { spawnZombies, zombieGroup, zombieMixers } from './utils/zombieSpawner';
 import { createMuzzleFlash } from './utils/createMuzzleFlash';
 import { createBloodSplatter } from './utils/createBloodSplatter';
-// import GenTerrain from './classes/genTerrain';
+import GenTerrain from './classes/genTerrain';
 
 addEventListeners();
 
@@ -31,7 +31,7 @@ camera.add(listener);
 const backgroundMusic = new THREE.Audio(listener);
 
 const audioLoader = new THREE.AudioLoader();
-audioLoader.load('/audio/bg_music2.mp3', function (buffer) {
+audioLoader.load('/audio/bg-music.mp3', function (buffer) {
   backgroundMusic.setBuffer(buffer);
   backgroundMusic.setLoop(true);
   backgroundMusic.setVolume(0.3);
@@ -49,7 +49,7 @@ loader.load('/weapon/scene.gltf', (gltf) => {
   camera.add(gun);
 });
 
-loadModels(scene, loadingManager);
+// loadModels(scene, loadingManager);
 
 const clock = new THREE.Clock();
 
@@ -61,6 +61,12 @@ function checkPlayerZombieCollision() {
 
   zombieGroup.children.forEach((zombie) => {
     const distance = zombie.position.distanceTo(playerCollider.end);
+
+    if (distance < 5) {
+      isAnyZombieNear = true;
+      audioManager.playRandomZombieSound();
+    }
+
     if (distance < 1.5) {
       isAnyZombieNear = true;
     }
@@ -70,6 +76,7 @@ function checkPlayerZombieCollision() {
     if (!isPlayerNearZombie) {
       isPlayerNearZombie = true;
       playerHealthManager.startHealthDecay(5, 500);
+      audioManager.playRandomPainSound();
     }
   } else {
     if (isPlayerNearZombie) {
@@ -607,10 +614,9 @@ document.addEventListener('mouseup', () => {
   }
 });
 
-// const terrain = new GenTerrain({ chunkSize: 100, maxChunks: 10 });
-// scene.add(terrain.terrainChunks);
-// // scene.add(terrain.walls);
-// scene.add(terrain.trees);
+const terrain = new GenTerrain({ chunkSize: 100, maxChunks: 10 });
+scene.add(terrain.terrainChunks);
+scene.add(terrain.trees);
 
 const pauseMenu = document.getElementById('pause-menu');
 const resumeButton = document.getElementById('resume-button');
@@ -643,7 +649,7 @@ function animate() {
     updatePlayer(deltaTime);
     updateFlashlightPosition();
     spawnZombies(camera);
-    // terrain.update(camera.position);
+    terrain.update(camera.position);
 
     if (
       !keyStates['KeyW'] &&
@@ -679,7 +685,7 @@ function animate() {
     const zombieSpeed = 4;
     const separationRadius = 2.0;
     const separationStrength = 100.0;
-    const groundLevel = 5;
+    const groundLevel = 0;
 
     zombieGroup.children.forEach((zombie, index) => {
       const directionToPlayer = new THREE.Vector3();
@@ -693,6 +699,14 @@ function animate() {
           new THREE.Vector3(zombie.position.x, groundLevel, zombie.position.z)
         )
         .normalize();
+
+      // if (!zombie.userData.boxHelper) {
+      //   const boxHelper = new THREE.BoxHelper(zombie, 0xff0000);
+      //   scene.add(boxHelper);
+      //   zombie.userData.boxHelper = boxHelper;
+      // }
+
+      // zombie.userData.boxHelper.update();
 
       const separationForce = new THREE.Vector3();
       zombieGroup.children.forEach((otherZombie, otherIndex) => {

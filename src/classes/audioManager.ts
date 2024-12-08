@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-
 export class AudioManager {
   private listener: THREE.AudioListener;
   private loadingManager: THREE.LoadingManager;
@@ -11,6 +10,8 @@ export class AudioManager {
   public runningSound: THREE.Audio;
   public jumpSound: THREE.Audio;
   public playerDeathSound: THREE.Audio;
+  public playerPainSounds: THREE.Audio[];
+  public zombieSounds: THREE.Audio[];
 
   constructor(camera: THREE.Camera, loadingManager: THREE.LoadingManager) {
     this.listener = new THREE.AudioListener();
@@ -18,17 +19,60 @@ export class AudioManager {
 
     camera.add(this.listener);
 
-    this.gunshotSound = this.loadSound('/audio/weapon/fire.mp3', 0.5, false);
+    this.gunshotSound = this.loadSound(
+      '/audio/weapon-sounds/fire.wav',
+      1,
+      false
+    );
     this.shellSound = this.loadSound(
-      '/audio/weapon/bulletshells04.mp3',
+      '/audio/weapon-sounds/bulletshells.mp3',
       0.3,
       false
     );
-    this.reloadSound = this.loadSound('/audio/weapon/reload.mp3', 0.5, false);
-    this.footstepSound = this.loadSound('/audio/footsteps.mp3', 0.3, true);
-    this.runningSound = this.loadSound('/audio/running.mp3', 0.3, true);
-    this.jumpSound = this.loadSound('/audio/weapon/jump.wav', 0.5, false);
-    this.playerDeathSound = this.loadSound('/audio/death.wav', 0.7, false);
+    this.reloadSound = this.loadSound(
+      '/audio/weapon-sounds/reload.mp3',
+      0.5,
+      false
+    );
+    this.footstepSound = this.loadSound(
+      '/audio/player-sounds/footsteps.mp3',
+      0.3,
+      true
+    );
+    this.runningSound = this.loadSound(
+      '/audio/player-sounds/running.mp3',
+      0.3,
+      true
+    );
+    this.jumpSound = this.loadSound(
+      '/audio/player-sounds/jump.wav',
+      0.5,
+      false
+    );
+    this.playerDeathSound = this.loadSound(
+      '/audio/player-sounds/death.wav',
+      0.7,
+      false
+    );
+    this.playerPainSounds = [
+      this.loadSound('/audio/player-sounds/pain1.wav', 0.7, false),
+      this.loadSound('/audio/player-sounds/pain2.wav', 0.7, false),
+      this.loadSound('/audio/player-sounds/pain3.wav', 0.7, false),
+      this.loadSound('/audio/player-sounds/pain4.wav', 0.7, false),
+      this.loadSound('/audio/player-sounds/pain5.wav', 0.7, false),
+      this.loadSound('/audio/player-sounds/pain6.wav', 0.7, false),
+      this.loadSound('/audio/player-sounds/pain7.wav', 0.7, false),
+      this.loadSound('/audio/player-sounds/pain8.wav', 0.7, false),
+    ];
+    this.zombieSounds = [
+      this.loadSound('/audio/zombie-sounds/zombie1.wav', 0.2, false),
+      this.loadSound('/audio/zombie-sounds/zombie2.wav', 0.2, false),
+      this.loadSound('/audio/zombie-sounds/zombie3.wav', 0.2, false),
+      this.loadSound('/audio/zombie-sounds/zombie4.wav', 0.2, false),
+      this.loadSound('/audio/zombie-sounds/zombie5.wav', 0.2, false),
+      this.loadSound('/audio/zombie-sounds/zombie6.wav', 0.2, false),
+      this.loadSound('/audio/zombie-sounds/zombie7.wav', 0.2, false),
+    ];
   }
 
   private loadSound(
@@ -46,5 +90,19 @@ export class AudioManager {
     });
 
     return audio;
+  }
+
+  public playRandomPainSound(): void {
+    const randomIndex = Math.floor(
+      Math.random() * this.playerPainSounds.length
+    );
+    const randomPainSound = this.playerPainSounds[randomIndex];
+    randomPainSound.play();
+  }
+
+  public playRandomZombieSound(): void {
+    const randomIndex = Math.floor(Math.random() * this.zombieSounds.length);
+    const randomZombieSound = this.zombieSounds[randomIndex];
+    randomZombieSound.play();
   }
 }

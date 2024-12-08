@@ -25,16 +25,16 @@ export function initializeScene() {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   document.body.appendChild(renderer.domElement);
 
-  // const fogColor = 0x000000;
-  // const fogDensity = 0.05;
-  // scene.fog = new THREE.FogExp2(fogColor, fogDensity);
-  // renderer.setClearColor(fogColor);
+  const fogColor = 0x000000;
+  const fogDensity = 0.1;
+  scene.fog = new THREE.FogExp2(fogColor, fogDensity);
+  renderer.setClearColor(fogColor);
 
   const stats = new Stats() as any;
   document.body.appendChild(stats.domElement);
 
   new RGBELoader(loadingManager).load(
-    '/background/background_day 4k.hdr',
+    '/scene-background/background 4K.hdr',
     (texture) => {
       texture.mapping = THREE.EquirectangularReflectionMapping;
       scene.background = texture;
