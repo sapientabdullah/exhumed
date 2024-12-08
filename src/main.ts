@@ -599,7 +599,7 @@ function animate() {
     const zombieSpeed = 4;
     const separationRadius = 2.0;
     const separationStrength = 100.0;
-    const groundLevel = 5;
+    const groundLevel = 0;
 
     zombieGroup.children.forEach((zombie, index) => {
       const directionToPlayer = new THREE.Vector3();
