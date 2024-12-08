@@ -77,6 +77,86 @@ function checkPlayerZombieCollision() {
       playerHealthManager.stopHealthDecay();
     }
   }
+
+  if (playerHealthManager.health <= 0) {
+    handlePlayerDeath();
+  }
+}
+
+function handlePlayerDeath() {
+  audioManager.playerDeathSound.play();
+  paused = true;
+  if (audioManager.footstepSound.isPlaying) audioManager.footstepSound.stop();
+  if (audioManager.runningSound.isPlaying) audioManager.runningSound.stop();
+  if (audioManager.gunshotSound.isPlaying) audioManager.gunshotSound.stop();
+  if (backgroundMusic.isPlaying) backgroundMusic.stop();
+
+  const gameOverScreen = document.getElementById('game-over-screen');
+  if (gameOverScreen) {
+    gameOverScreen.style.display = 'flex';
+  }
+
+  document.exitPointerLock();
+}
+
+const restartButton = document.getElementById('restart-button');
+restartButton!.addEventListener('click', () => {
+  restartGame();
+});
+
+function restartGame() {
+  const gameOverScreen = document.getElementById('game-over-screen');
+  if (gameOverScreen) {
+    gameOverScreen.style.display = 'none';
+  }
+
+  playerHealthManager.resetHealth();
+
+  teleportPlayer();
+  playerVelocity.set(0, 0, 0);
+
+  paused = false;
+  isPlayerNearZombie = false;
+
+  zombieGroup.children.forEach((zombie) => {
+    zombie.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.geometry.dispose();
+        if (child.material instanceof THREE.Material) {
+          child.material.dispose();
+        }
+      }
+    });
+  });
+  zombieGroup.clear();
+  spawnZombies(camera);
+
+  bulletCount = 30;
+  updateBulletDisplay();
+  bullets.forEach((bullet) => {
+    scene.remove(bullet);
+  });
+  bullets = [];
+
+  zombieKills = 0;
+  updateZombieKillDisplay();
+
+  currentRecoil = 0;
+  runBobbingTime = 0;
+  gunBobbingTime = 0;
+
+  if (gun) {
+    gun.position.set(0.9, -0.9, -1.2);
+    gun.rotation.set(0, Math.PI, 0);
+  }
+
+  clock.getDelta();
+
+  audioManager.playerDeathSound.stop();
+  if (!backgroundMusic.isPlaying) backgroundMusic.play();
+  if (audioManager.footstepSound.isPlaying) audioManager.footstepSound.stop();
+  if (audioManager.runningSound.isPlaying) audioManager.runningSound.stop();
+  if (audioManager.gunshotSound.isPlaying) audioManager.gunshotSound.stop();
 }
 
 const playerCollider = new Capsule(
@@ -599,7 +679,7 @@ function animate() {
     const zombieSpeed = 4;
     const separationRadius = 2.0;
     const separationStrength = 100.0;
-    const groundLevel = 0;
+    const groundLevel = 5;
 
     zombieGroup.children.forEach((zombie, index) => {
       const directionToPlayer = new THREE.Vector3();

@@ -1,6 +1,6 @@
 export class HealthManager {
-  private playerHealth: number;
-  private readonly maxHealth: number;
+  public playerHealth: number;
+  public readonly maxHealth: number;
   private healthDecreaseInterval: ReturnType<typeof setInterval> | undefined =
     undefined;
   private healthDisplay: HTMLElement | null;
@@ -12,6 +12,15 @@ export class HealthManager {
     this.updateHealthDisplay();
   }
 
+  resetHealth() {
+    this.playerHealth = this.maxHealth;
+    this.updateHealthDisplay();
+  }
+
+  get health(): number {
+    return this.playerHealth;
+  }
+
   startHealthDecay(decayAmount: number, interval: number): void {
     if (!this.healthDecreaseInterval) {
       this.healthDecreaseInterval = setInterval(() => {
@@ -21,7 +30,6 @@ export class HealthManager {
           this.updateHealthDisplay();
         } else {
           this.stopHealthDecay();
-          console.log('Player is dead');
         }
       }, interval);
     }
