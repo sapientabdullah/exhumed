@@ -43,9 +43,9 @@ Exhumed is an intense, action-packed survival game that plunges players into a w
 
 ## In-Game Shots
 
-![Demo 1](https://cloud-6ohc7n6tz-hack-club-bot.vercel.app/0screenshot_2024-12-09_at_21.31.10.png)
+![Demo 1](https://cloud-6w8yzgbzf-hack-club-bot.vercel.app/0dec_9_screenshot_from_resize_images__1_.jpg)
 ![Demo 2](https://cloud-c7j6cp8mr-hack-club-bot.vercel.app/0image.jpeg)
-![Demo 3](https://cloud-qcv7dz36w-hack-club-bot.vercel.app/0screenshot_2024-12-09_at_21.51.41.png)
+![Demo 3](https://cloud-me7ydtlpb-hack-club-bot.vercel.app/0dec_9_screenshot_from_resize_images.jpg)
 
 ## License
 
