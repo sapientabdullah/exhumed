@@ -12,6 +12,8 @@ export class AudioManager {
   public playerDeathSound: THREE.Audio;
   public playerPainSounds: THREE.Audio[];
   public zombieSounds: THREE.Audio[];
+  public lurkingBossZombieSound: THREE.Audio;
+  public zombieBossDeathSound: THREE.Audio;
 
   constructor(camera: THREE.Camera, loadingManager: THREE.LoadingManager) {
     this.listener = new THREE.AudioListener();
@@ -73,6 +75,16 @@ export class AudioManager {
       this.loadSound('/audio/zombie-sounds/zombie6.wav', 0.2, false),
       this.loadSound('/audio/zombie-sounds/zombie7.wav', 0.2, false),
     ];
+    this.lurkingBossZombieSound = this.loadSound(
+      '/audio/boss-sounds/lurking-boss.mp3',
+      0.7,
+      false
+    );
+    this.zombieBossDeathSound = this.loadSound(
+      '/audio/boss-sounds/boss-death.mp3',
+      0.7,
+      false
+    );
   }
 
   private loadSound(

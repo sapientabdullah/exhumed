@@ -52,6 +52,17 @@ loader.load('/weapon/scene.gltf', (gltf) => {
 
 loadModels(scene, loadingManager);
 
+let bossZombie: THREE.Object3D;
+
+loader.load('/boss-zombie/scene.gltf', (gltf) => {
+  bossZombie = gltf.scene;
+  bossZombie.scale.set(2, 2, 2);
+  bossZombie.position.set(20, -3, -50);
+  scene.add(bossZombie);
+  bossZombie.userData.health = 100;
+  bossZombie.userData.isBoss = true;
+});
+
 const clock = new THREE.Clock();
 
 const playerHealthManager = new HealthManager(100, 100);
@@ -72,6 +83,21 @@ function checkPlayerZombieCollision() {
       isAnyZombieNear = true;
     }
   });
+
+  if (bossZombie) {
+    const bossDistance = bossZombie.position.distanceTo(playerCollider.end);
+    if (bossDistance < 15) {
+      isAnyZombieNear = true;
+      audioManager.lurkingBossZombieSound.play();
+    }
+    if (bossDistance < 5) {
+      if (!isPlayerNearZombie) {
+        isPlayerNearZombie = true;
+        playerHealthManager.startHealthDecay(15, 300);
+        audioManager.playRandomPainSound();
+      }
+    }
+  }
 
   if (isAnyZombieNear) {
     if (!isPlayerNearZombie) {
@@ -379,7 +405,69 @@ function createBullet() {
 
   direction.subVectors(goalPos, camera.position);
   raycaster.set(camera.position, direction);
+
   let intersects = raycaster.intersectObjects(zombieGroup.children, true);
+  let intersectsBoss = raycaster.intersectObject(bossZombie, true);
+
+  if (intersectsBoss.length > 0) {
+    const hitObject = intersectsBoss[0].object as THREE.Mesh;
+    const impactPosition = intersectsBoss[0].point;
+    const impactNormal = intersectsBoss[0].face?.normal
+      .clone()
+      .applyMatrix3(new THREE.Matrix3().getNormalMatrix(hitObject.matrixWorld));
+
+    if (impactNormal) {
+      createBloodSplatter(impactPosition, impactNormal, scene);
+    }
+
+    bossZombie.userData.health -= 1;
+    updateBossHealthBar();
+
+    if (bossZombie.userData.health <= 0) {
+      bossZombie.userData.isDead = true;
+
+      const bossDeathAction = bossZombie.userData.deathAction;
+      const bossMixer = bossZombie.userData.mixer;
+      if (bossDeathAction && bossMixer) {
+        bossMixer.stopAllAction();
+        bossDeathAction.reset();
+        bossDeathAction.play();
+        bossDeathAction.timeScale = 6.0;
+      }
+
+      audioManager.zombieBossDeathSound.play();
+
+      zombieKills++;
+      updateZombieKillDisplay();
+
+      setTimeout(() => {
+        scene.remove(bossZombie);
+        bossZombie.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.geometry.dispose();
+            if (child.material instanceof THREE.Material) {
+              child.material.dispose();
+            }
+          }
+        });
+      }, 1500);
+      const healthBar = document.getElementById('boss-health-container');
+      if (healthBar) healthBar.style.display = 'none';
+    } else {
+      bossZombie.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.material.color.set(0xff0000);
+        }
+      });
+      setTimeout(() => {
+        bossZombie.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.material.color.set(0xffffff);
+          }
+        });
+      }, 100);
+    }
+  }
 
   if (intersects.length > 0) {
     const hitObject = intersects[0].object as THREE.Mesh;
@@ -479,6 +567,19 @@ function createBullet() {
   }
   bullet.userData = { update, active };
   return bullet;
+}
+
+function updateBossHealthBar() {
+  const healthBar = document.getElementById('boss-health-bar');
+  if (healthBar) {
+    if (bossZombie.userData.health <= 0) {
+      healthBar.style.display = 'none';
+    } else {
+      const healthPercentage = (bossZombie.userData.health / 50) * 100;
+      healthBar.style.width = `${healthPercentage}%`;
+      healthBar.style.display = 'block';
+    }
+  }
 }
 
 function getZombieParent(hitObject: THREE.Object3D): THREE.Mesh {
@@ -697,6 +798,19 @@ function animate() {
       gunBobbingTime = 0;
     }
 
+    if (bossZombie && !bossZombie.userData.isDead) {
+      const playerPosition = camera.position.clone();
+      const bossDirection = playerPosition.sub(bossZombie.position).normalize();
+      bossZombie.position.add(bossDirection.multiplyScalar(1.5 * deltaTime));
+      bossZombie.lookAt(
+        new THREE.Vector3(
+          playerCollider.end.x,
+          bossZombie.position.y,
+          playerCollider.end.z
+        )
+      );
+    }
+
     const zombieSpeed = 4;
     const separationRadius = 2.0;
     const separationStrength = 100.0;
@@ -714,14 +828,6 @@ function animate() {
           new THREE.Vector3(zombie.position.x, groundLevel, zombie.position.z)
         )
         .normalize();
-
-      // if (!zombie.userData.boxHelper) {
-      //   const boxHelper = new THREE.BoxHelper(zombie, 0xff0000);
-      //   scene.add(boxHelper);
-      //   zombie.userData.boxHelper = boxHelper;
-      // }
-
-      // zombie.userData.boxHelper.update();
 
       const separationForce = new THREE.Vector3();
       zombieGroup.children.forEach((otherZombie, otherIndex) => {

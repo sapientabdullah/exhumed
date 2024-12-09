@@ -77,21 +77,37 @@
     <span id="kill-count" class="text-shadow">0</span>
   </div>
 
-  <div id="pause-menu" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden">
-    <div class="bg-black text-white bg-opacity-40 shadow-lg rounded-lg p-8 w-3/4 max-w-md">
-      <h2 class="text-2xl font-bold mb-4 text-center">Paused</h2>
-      <button id="resume-button" class="w-full py-2 px-4 bg-black text-white rounded-lg">
+  <div id="pause-menu" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-70 hidden">
+    <div class="bg-zinc-900 text-gray-200 border-4 border-red-700 shadow-2xl rounded-lg p-8 w-11/12 max-w-md relative">
+      <h2 class="text-4xl font-extrabold mb-6 text-center text-red-600 tracking-widest glitch" data-text="PAUSED">PAUSED
+      </h2>
+
+      <button id="resume-button"
+        class="w-full py-3 px-4 bg-gradient-to-r from-red-800 to-red-600 text-white font-bold text-lg tracking-wide rounded-lg shadow-lg hover:from-red-600 hover:to-red-500 hover:scale-105 transform transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-red-700">
         Resume
       </button>
+
+      <p class="text-center mt-8 text-sm text-red-500">"They’re still out there... waiting for you."</p>
+
+      <div class="absolute inset-0 bg-noise opacity-10 pointer-events-none"></div>
     </div>
   </div>
 
   <div id="game-over-screen" style="display: none;">
-    <h1>Game Over</h1>
-    <button id="restart-button">Restart</button>
+    <h1 id="game-over-heading">Game Over</h1>
+    <button id="restart-button">
+      Restart
+    </button>
   </div>
 
   <div id="blood-overlay"></div>
+
+  <div id="boss-health-container">
+    <h2 id="boss-health-title">Boss Health</h2>
+    <div class="rounded-sm" id="boss-health-bar-container">
+      <div id="boss-health-bar"></div>
+    </div>
+  </div>
 
   <script type="module" src="/src/main.ts"></script>
 </body>

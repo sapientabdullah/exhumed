@@ -8,3 +8,32 @@
 </p>
 
 Exhumed is an intense, action-packed survival game that plunges players into a world where the undead have risen, and only one person can stand against the horde. As darkness falls, you must fight your way through waves of zombies, using quick reflexes and precision shooting to survive.
+
+## Features
+
+- Infinite Generative Terrain
+- Realistic Gunplay
+- Boss Fight
+- Zombie Horde
+- Health and Stamina System
+- Interactive Audio
+- Procedural Combat
+- Dynamic Crosshairs and Bullet Display
+
+## Controls
+
+| Action            | Key        |
+| ----------------- | ---------- |
+| Move Forward      | `W`        |
+| Move Backward     | `S`        |
+| Move Left         | `A`        |
+| Move Right        | `D`        |
+| Sprint            | `Shift`    |
+| Jump              | `Space`    |
+| Shoot             | Left Click |
+| Reload            | `R`        |
+| Pause/Resume Game | `P`        |
+
+## License
+
+This game is open-source and licensed under the MIT License. You are free to modify and distribute the code as long as you retain the original license.
