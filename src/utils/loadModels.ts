@@ -9,29 +9,6 @@ export function loadModels(
 ) {
   const loader = new GLTFLoader(loadingManager);
 
-  const addFence = (x: number, y: number, z: number, rotationY: number) => {
-    loader.load('/fence/scene.gltf', (gltf) => {
-      const fence = gltf.scene;
-      fence.scale.set(4, 4, 4);
-      fence.position.set(x, y, z);
-      fence.rotation.set(0, rotationY, 0);
-      fence.traverse((node) => {
-        if ((node as THREE.Mesh).isMesh) {
-          node.castShadow = true;
-        }
-      });
-      scene.add(fence);
-
-      const box = new THREE.Box3().setFromObject(fence);
-      collidableObjects.push({ mesh: fence, box });
-    });
-  };
-
-  addFence(13.5, -1.5, 45, Math.PI / 2);
-  addFence(34, -1.5, 45, Math.PI / 2);
-  addFence(-13.5, -2, 45, -Math.PI / 2);
-  addFence(-34, -2, 45, -Math.PI / 2);
-
   loader.load('/cargo/scene.gltf', (gltf) => {
     const container = gltf.scene;
     container.scale.set(4, 4, 4);
