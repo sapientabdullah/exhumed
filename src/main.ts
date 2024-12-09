@@ -29,6 +29,9 @@ const audioManager = new AudioManager(camera, loadingManager);
 const listener = new THREE.AudioListener();
 camera.add(listener);
 
+loadModels(scene, loadingManager);
+let isGameLoaded = false;
+
 const backgroundMusic = new THREE.Audio(listener);
 
 const audioLoader = new THREE.AudioLoader();
@@ -48,9 +51,9 @@ loader.load('/weapon/scene.gltf', (gltf) => {
   gun.position.set(0.9, -0.9, -1.2);
   gun.rotation.set(0, Math.PI, 0);
   camera.add(gun);
-});
 
-loadModels(scene, loadingManager);
+  checkGameLoaded();
+});
 
 let bossZombie: THREE.Object3D;
 
@@ -61,7 +64,15 @@ loader.load('/boss-zombie/scene.gltf', (gltf) => {
   scene.add(bossZombie);
   bossZombie.userData.health = 100;
   bossZombie.userData.isBoss = true;
+
+  checkGameLoaded();
 });
+
+function checkGameLoaded() {
+  if (zombieGroup.children.length > 0 && gun) {
+    isGameLoaded = true;
+  }
+}
 
 const clock = new THREE.Clock();
 
@@ -69,6 +80,7 @@ const playerHealthManager = new HealthManager(100, 100);
 let isPlayerNearZombie = false;
 
 function checkPlayerZombieCollision() {
+  if (!isGameLoaded) return;
   let isAnyZombieNear = false;
 
   zombieGroup.children.forEach((zombie) => {

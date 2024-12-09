@@ -36,9 +36,6 @@ export function loadModels(
       }
     });
     scene.add(vehicle);
-
-    const box = new THREE.Box3().setFromObject(vehicle);
-    collidableObjects.push({ mesh: vehicle, box });
   });
 
   loader.load('/utility-building/scene.gltf', (gltf) => {
