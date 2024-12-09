@@ -41,6 +41,12 @@ Exhumed is an intense, action-packed survival game that plunges players into a w
 | Reload            | `R`        |
 | Pause/Resume Game | `P`        |
 
+## In-Game Shots
+
+![Demo 1](https://cloud-6ohc7n6tz-hack-club-bot.vercel.app/0screenshot_2024-12-09_at_21.31.10.png)
+![Demo 2](https://cloud-c7j6cp8mr-hack-club-bot.vercel.app/0image.jpeg)
+![Demo 3](https://cloud-qcv7dz36w-hack-club-bot.vercel.app/0screenshot_2024-12-09_at_21.51.41.png)
+
 ## License
 
 This game is open-source and licensed under the MIT License. You are free to modify and distribute the code as long as you retain the original license.

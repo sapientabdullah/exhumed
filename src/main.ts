@@ -30,7 +30,6 @@ const listener = new THREE.AudioListener();
 camera.add(listener);
 
 loadModels(scene, loadingManager);
-let isGameLoaded = false;
 
 const backgroundMusic = new THREE.Audio(listener);
 
@@ -51,8 +50,6 @@ loader.load('/weapon/scene.gltf', (gltf) => {
   gun.position.set(0.9, -0.9, -1.2);
   gun.rotation.set(0, Math.PI, 0);
   camera.add(gun);
-
-  checkGameLoaded();
 });
 
 let bossZombie: THREE.Object3D;
@@ -64,15 +61,7 @@ loader.load('/boss-zombie/scene.gltf', (gltf) => {
   scene.add(bossZombie);
   bossZombie.userData.health = 100;
   bossZombie.userData.isBoss = true;
-
-  checkGameLoaded();
 });
-
-function checkGameLoaded() {
-  if (zombieGroup.children.length > 0 && gun) {
-    isGameLoaded = true;
-  }
-}
 
 const clock = new THREE.Clock();
 
@@ -80,7 +69,6 @@ const playerHealthManager = new HealthManager(100, 100);
 let isPlayerNearZombie = false;
 
 function checkPlayerZombieCollision() {
-  if (!isGameLoaded) return;
   let isAnyZombieNear = false;
 
   zombieGroup.children.forEach((zombie) => {
@@ -770,13 +758,21 @@ streetlightPositions.forEach((position) => {
   scene.add(streetLight);
 });
 
+const spawnDelay = 2000;
+
+function startZombieSpawnAfterDelay() {
+  setTimeout(() => {
+    spawnZombies(camera);
+  }, spawnDelay);
+}
+
 function animate() {
   if (!paused) {
     const deltaTime = clock.getDelta();
     controls(deltaTime);
     updatePlayer(deltaTime);
     updateFlashlightPosition();
-    spawnZombies(camera);
+    startZombieSpawnAfterDelay();
     terrain.update(camera.position);
 
     if (
@@ -824,7 +820,7 @@ function animate() {
     }
 
     const zombieSpeed = 4;
-    const separationRadius = 2.0;
+    const separationRadius = 5.0;
     const separationStrength = 100.0;
     const groundLevel = 0;
 
