@@ -415,6 +415,7 @@ function createBullet() {
         zombieMixer.stopAllAction();
         deathAction.reset();
         deathAction.play();
+        deathAction.timeScale = 6.0;
 
         zombieKills++;
         updateZombieKillDisplay();
@@ -429,11 +430,19 @@ function createBullet() {
               }
             }
           });
-        }, 2000);
+        }, 1500);
       } else {
-        hitObject.material.color.set(0xff0000);
+        if (Array.isArray(hitObject.material)) {
+          hitObject.material.forEach((material) => {
+            if (material instanceof THREE.Material) {
+              (material as THREE.MeshBasicMaterial).color.set(0xff0000);
+            }
+          });
+        } else {
+          (hitObject.material as THREE.MeshBasicMaterial).color.set(0xff0000);
+        }
         setTimeout(() => {
-          hitObject.material.color.set(0xffffff);
+          (hitObject.material as THREE.MeshBasicMaterial).color.set(0xffffff);
         }, 100);
       }
     }
@@ -654,7 +663,7 @@ function animate() {
     controls(deltaTime);
     updatePlayer(deltaTime);
     updateFlashlightPosition();
-    // spawnZombies(camera);
+    spawnZombies(camera);
     terrain.update(camera.position);
 
     if (
