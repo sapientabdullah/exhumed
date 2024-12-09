@@ -10,7 +10,7 @@
 Exhumed is an intense, action-packed survival game that plunges players into a world where the undead have risen, and only one person can stand against the horde. As darkness falls, you must fight your way through waves of zombies, using quick reflexes and precision shooting to survive.
 
 <p align="center">
-	<img src="https://cloud-l2967vf9k-hack-club-bot.vercel.app/0my_movie_2_optimized__1_.gif" alt="Demo">
+	<img src="https://cloud-c7j6cp8mr-hack-club-bot.vercel.app/0image.jpeg" alt="Demo">
 	<br>
 	<a href="https://exhumed.vercel.app/">Live demo</a>
 	<br>
@@ -44,8 +44,7 @@ Exhumed is an intense, action-packed survival game that plunges players into a w
 ## In-Game Shots
 
 ![Demo 1](https://cloud-6w8yzgbzf-hack-club-bot.vercel.app/0dec_9_screenshot_from_resize_images__1_.jpg)
-![Demo 2](https://cloud-c7j6cp8mr-hack-club-bot.vercel.app/0image.jpeg)
-![Demo 3](https://cloud-me7ydtlpb-hack-club-bot.vercel.app/0dec_9_screenshot_from_resize_images.jpg)
+![Demo 2](https://cloud-me7ydtlpb-hack-club-bot.vercel.app/0dec_9_screenshot_from_resize_images.jpg)
 
 ## License
 
