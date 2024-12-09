@@ -63,7 +63,7 @@ class GenTerrain {
       const x = vertices[i] + xOffset;
       const z = vertices[i + 2] + zOffset;
       vertices[i + 1] =
-        this.noiseGenerator.noise(x / 50, z / 50, this.seed) * 5;
+        this.noiseGenerator.noise(x / 50, z / 50, this.seed) * 3;
     }
     geometry.attributes.position.needsUpdate = true;
     geometry.computeVertexNormals();

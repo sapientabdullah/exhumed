@@ -34,8 +34,8 @@ export function loadModels(
 
   loader.load('/cargo/scene.gltf', (gltf) => {
     const container = gltf.scene;
-    container.scale.set(2, 2, 2);
-    container.position.set(-30, -0.2, 20);
+    container.scale.set(4, 4, 4);
+    container.position.set(-30, -0.2, 15);
     container.rotation.set(0, -Math.PI / 2, 0);
     container.traverse((node) => {
       if ((node as THREE.Mesh).isMesh) {
@@ -52,7 +52,7 @@ export function loadModels(
     const vehicle = gltf.scene;
     vehicle.scale.set(3, 3, 3);
     vehicle.position.set(-20, -1.2, 1);
-    vehicle.rotation.set(0, Math.PI / 10, 0);
+    vehicle.rotation.set(0, Math.PI / 1.6, 0);
     vehicle.traverse((node) => {
       if ((node as THREE.Mesh).isMesh) {
         node.castShadow = true;
@@ -64,59 +64,37 @@ export function loadModels(
     collidableObjects.push({ mesh: vehicle, box });
   });
 
-  loader.load('/generate/scene.gltf', (gltf) => {
-    const generator = gltf.scene;
-    generator.scale.set(0.03, 0.03, 0.03);
-    generator.position.set(-32, 1.4, 38);
-    generator.rotation.set(0, Math.PI / 2, 0);
-    generator.traverse((node) => {
+  loader.load('/utility-building/scene.gltf', (gltf) => {
+    const utilityBuilding = gltf.scene;
+    utilityBuilding.scale.set(3, 3, 3);
+    utilityBuilding.position.set(-30, 0, 38);
+    utilityBuilding.rotation.set(0, Math.PI, 0);
+    utilityBuilding.traverse((node) => {
       if ((node as THREE.Mesh).isMesh) {
         node.castShadow = true;
       }
     });
-    scene.add(generator);
-
-    const box = new THREE.Box3().setFromObject(generator);
-    collidableObjects.push({ mesh: generator, box });
+    scene.add(utilityBuilding);
   });
 
-  loader.load('/pole/scene.gltf', (gltf) => {
-    const pole = gltf.scene;
-    pole.scale.set(0.03, 0.03, 0.03);
-    pole.position.set(0, 1, 0);
-    pole.rotation.set(0, -Math.PI / 2, 0);
-    pole.traverse((node) => {
+  loader.load('/graffiti-building/scene.gltf', (gltf) => {
+    const graffitiBuilding = gltf.scene;
+    graffitiBuilding.scale.set(2, 2, 2);
+    graffitiBuilding.position.set(-150, 8, -60);
+    graffitiBuilding.rotation.set(-Math.PI / 2, 0, 0);
+    graffitiBuilding.traverse((node) => {
       if ((node as THREE.Mesh).isMesh) {
         node.castShadow = true;
       }
     });
-    scene.add(pole);
-
-    const box = new THREE.Box3().setFromObject(pole);
-    collidableObjects.push({ mesh: pole, box });
-  });
-
-  loader.load('/boxes/scene.gltf', (gltf) => {
-    const boxes = gltf.scene;
-    boxes.scale.set(10, 10, 10);
-    boxes.position.set(-20, -1.2, 20);
-    boxes.rotation.set(0, Math.PI / 2, 0);
-    boxes.traverse((node) => {
-      if ((node as THREE.Mesh).isMesh) {
-        node.castShadow = true;
-      }
-    });
-    scene.add(boxes);
-
-    const box = new THREE.Box3().setFromObject(boxes);
-    collidableObjects.push({ mesh: boxes, box });
+    scene.add(graffitiBuilding);
   });
 
   loader.load('/barrier/scene.gltf', (gltf) => {
     const barrier = gltf.scene;
-    barrier.scale.set(2, 2, 2);
-    barrier.position.set(12, 1, 45);
-    barrier.rotation.set(0, -Math.PI / 2, 0);
+    barrier.scale.set(0.45, 0.45, 0.45);
+    barrier.position.set(0, -1, 45);
+    barrier.rotation.set(0, Math.PI, 0);
     barrier.traverse((node) => {
       if ((node as THREE.Mesh).isMesh) {
         node.castShadow = true;

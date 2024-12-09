@@ -39,7 +39,7 @@ function spawnZombies(camera: THREE.Camera) {
         zombieMixers.push(zombieMixer);
 
         const walkAction = zombieMixer.clipAction(gltf.animations[1]);
-        walkAction.setEffectiveTimeScale(4);
+        walkAction.setEffectiveTimeScale(5);
         walkAction.play();
 
         const attackAction = zombieMixer.clipAction(gltf.animations[2]);

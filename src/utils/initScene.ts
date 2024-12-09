@@ -26,7 +26,7 @@ export function initializeScene() {
   document.body.appendChild(renderer.domElement);
 
   const fogColor = 0x000000;
-  const fogDensity = 0.1;
+  const fogDensity = 0.03;
   scene.fog = new THREE.FogExp2(fogColor, fogDensity);
   renderer.setClearColor(fogColor);
 

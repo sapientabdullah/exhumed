@@ -14,6 +14,7 @@ import { spawnZombies, zombieGroup, zombieMixers } from './utils/zombieSpawner';
 import { createMuzzleFlash } from './utils/createMuzzleFlash';
 import { createBloodSplatter } from './utils/createBloodSplatter';
 import GenTerrain from './classes/genTerrain';
+import { createStreetLight, streetlightPositions } from './utils/streetlights';
 
 addEventListeners();
 
@@ -49,7 +50,7 @@ loader.load('/weapon/scene.gltf', (gltf) => {
   camera.add(gun);
 });
 
-// loadModels(scene, loadingManager);
+loadModels(scene, loadingManager);
 
 const clock = new THREE.Clock();
 
@@ -642,13 +643,18 @@ resumeButton!.addEventListener('click', () => {
   clock.getDelta();
 });
 
+streetlightPositions.forEach((position) => {
+  const streetLight = createStreetLight(position);
+  scene.add(streetLight);
+});
+
 function animate() {
   if (!paused) {
     const deltaTime = clock.getDelta();
     controls(deltaTime);
     updatePlayer(deltaTime);
     updateFlashlightPosition();
-    spawnZombies(camera);
+    // spawnZombies(camera);
     terrain.update(camera.position);
 
     if (
@@ -671,11 +677,11 @@ function animate() {
       keyStates['KeyS'] ||
       keyStates['KeyD']
     ) {
-      runBobbingTime += deltaTime * 10; // bobbing speed
-      camera.position.y += Math.sin(runBobbingTime) * 0.08; // bobbing intensity
-      gunBobbingTime += deltaTime * 10; // bobbing speed
-      gun!.position.y = -0.9 + Math.sin(gunBobbingTime) * 0.1; // bobbing intensity in vertical direction
-      gun!.position.x = 0.9 + Math.sin(gunBobbingTime * 0.5) * 0.05; // horizontal sway
+      runBobbingTime += deltaTime * 10;
+      camera.position.y += Math.sin(runBobbingTime) * 0.08;
+      gunBobbingTime += deltaTime * 10;
+      gun!.position.y = -0.9 + Math.sin(gunBobbingTime) * 0.1;
+      gun!.position.x = 0.9 + Math.sin(gunBobbingTime * 0.5) * 0.05;
       gun!.position.z = -1.2 + Math.cos(gunBobbingTime * 0.5) * 0.05;
     } else {
       runBobbingTime = 0;
